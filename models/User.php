@@ -4,6 +4,8 @@ class User extends BaseClass {
         'cost' => 11
     ];
 
+    private $select_all = 'SELECT * FROM vwusers';
+
     public $email;
     public $password;
     public $confirm_password;
@@ -23,6 +25,14 @@ class User extends BaseClass {
         $this->stmt = $this->prepare_stmt("CALL insUser('{$this->user_first_name}', '{$this->user_last_name}', '{$this->email}', '{$this->password}', '{$this->phone_num}');");
 
         return $this->stmt_executed();
+    }
+
+    public function get_all() {
+        $stmt = $this->conn->prepare($this->select_all);
+
+        $stmt->execute();
+
+        return $stmt;
     }
 
     public function passwords_confirm() {
