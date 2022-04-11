@@ -28,11 +28,29 @@ class User extends BaseClass {
     }
 
     public function get_all() {
-        $stmt = $this->conn->prepare($this->select_all);
+        $this->stmt = $this->prepare_stmt($this->select_all);
+        $this->execute();
 
-        $stmt->execute();
+        return $this->stmt;
+    }
 
-        return $stmt;
+    public function get($show_password) {
+        $this->query = $this->select_all . ' WHERE UserId = ' . $this->user_id . $this->limit;
+
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+        
+        $this->row = $this->stmt->fetch(PDO::FETCH_ASSOC);
+
+        $this->user_first_name = $this->row_value('FirstName');
+        $this->user_last_name = $this->row_value('LastName');
+        $this->email = $this->row_value('Email');
+        $this->isAdmin = $this->row_value('IsAdmin');
+
+        if ($show_password) {
+            $this->password = $this->row_value('Password');
+        }
+
     }
 
     public function passwords_confirm() {
