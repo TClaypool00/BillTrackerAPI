@@ -5,9 +5,10 @@ class BaseClass {
     protected $additional_query;
     protected $limit = ' LIMIT 0, 1';
     protected $row;
+    protected $query;
 
     public $user_id;
-    public $user_firstName;
+    public $user_first_name;
     public $user_last_name;
 
     protected function stmt_executed() {
@@ -26,5 +27,9 @@ class BaseClass {
 
     protected function row_value($value) {
         return $this->row[$value] ?? null;
+    }
+
+    protected function execute() {
+        $this->stmt->execute();
     }
 }
