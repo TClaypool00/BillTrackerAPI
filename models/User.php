@@ -53,6 +53,14 @@ class User extends BaseClass {
 
     }
 
+    public function update() {
+        $this->clean_data();
+
+        $this->stmt = $this->prepare_stmt("CALL updUser('{$this->user_first_name}', '{$this->user_last_name}', '{$this->email}','{$this->phone_num}', '{$this->user_id}');");
+
+        return $this->stmt_executed();
+    }
+
     public function passwords_confirm() {
         if ($this->password === $this->confirm_password) {
             return true;
@@ -70,7 +78,7 @@ class User extends BaseClass {
     }
 
     private function clean_data() {
-        $this->user_firstName = htmlspecialchars(strip_tags($this->user_firstName));
+        $this->user_first_name = htmlspecialchars(strip_tags($this->user_first_name));
         $this->user_last_name = htmlspecialchars(strip_tags($this->user_last_name));
         $this->email = htmlspecialchars(strip_tags($this->email));
         $this->phone_num = htmlentities(strip_tags($this->phone_num));
