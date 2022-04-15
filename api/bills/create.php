@@ -5,7 +5,9 @@ include '../../global_functions.php';
 
 $bill->bill_name = $data->billName;
 $bill->amount_due = $data->amountDue;
+$bill->is_recurring = $data->isRecurring;
 $bill->user_id = $data->userId;
+$bill->end_date = $data->endDate;
 
 if ($bill->create()) {
     http_response_code(201);
