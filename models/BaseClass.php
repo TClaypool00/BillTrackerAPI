@@ -32,4 +32,8 @@ class BaseClass {
     protected function execute() {
         $this->stmt->execute();
     }
+
+    protected function currency($value) {
+        return '$' . $value;
+    }
 }
