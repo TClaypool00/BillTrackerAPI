@@ -33,7 +33,15 @@ class BaseClass {
         $this->stmt->execute();
     }
 
-    protected function currency($value) {
+    public function currency($value) {
         return '$' . $value;
+    }
+
+    protected function additional_query_empty() {
+        if ($this->additional_query === '' || $this->additional_query === null) {
+            return true;
+        }
+
+        return false;
     }
 }
