@@ -51,6 +51,39 @@ class Bill extends BaseClass {
         $this->amount_due_curr = $this->currency($this->amount_due);
     }
 
+    public function get_all($by_user, $by_active,  $by_end_date) {
+        $this->query = $this->select_all;
+
+        if ($by_user) {
+            $this->additional_query = ' WHERE UserId = ' . $this->user_id;
+        }
+
+        if ($by_active) {
+            if ($this->additional_query_empty()) {
+                $this->additional_query = ' WHERE ';
+            } else {
+                $this->additional_query .= ' AND ';
+            }
+            $this->additional_query .= 'IsActive = ' . $this->is_active;
+        }
+
+        if ($by_end_date) {
+            if ($this->additional_query_empty()) {
+                $this->additional_query = ' WHERE ';
+            } else {
+                $this->additional_query .= ' AND ';
+            }
+
+            $this->additional_query .= 'EndDate IS ' . $this->end_date;
+        }
+
+        $this->stmt = $this->prepare_stmt($this->query . $this->additional_query);
+        
+        $this->execute();
+
+        return $this->stmt;
+    }
+
     private function clean_data() {
         $this->bill_name = htmlspecialchars(strip_tags($this->bill_name));
         $this->amount_due = htmlentities(strip_tags($this->amount_due));
