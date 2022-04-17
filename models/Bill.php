@@ -4,7 +4,6 @@ class Bill extends BaseClass {
     public $bill_name;
     public $amount_due;
     public $is_recurring;
-    public $is_active;
     public $end_date;
     public $amount_due_curr;
 
