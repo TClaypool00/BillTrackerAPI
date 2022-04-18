@@ -18,6 +18,15 @@ class Loan extends BaseClass {
 
         return $this->stmt_executed();
     }
+    
+    public function update()
+    {
+        $this->clean_data();
+
+        $this->stmt = $this->prepare_stmt("CALL updLoan('{$this->loan_name}', '{$this->is_active}', '{$this->monthly_amt_due}', '{$this->total_loan_amt}', '{$this->remaining_amt}', '{$this->loan_id}');");
+
+        return $this->stmt_executed();
+    }
 
     private function clean_data() {
         $this->loan_name = htmlspecialchars(strip_tags($this->loan_name));
