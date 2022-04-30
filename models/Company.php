@@ -1,7 +1,5 @@
 <?php
 class Company extends BaseClass {
-    public $company_id;
-    public $company_name;
     public $type_id;
     public $type_name;
 

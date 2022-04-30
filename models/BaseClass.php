@@ -10,7 +10,14 @@ class BaseClass {
     public $user_id;
     public $user_first_name;
     public $user_last_name;
+
     public $is_active;
+
+    public $company_id;
+    public $company_name;
+
+    public $type_id;
+    public $type_name;
 
     protected function stmt_executed() {
         if ($this->stmt->execute()) {
