@@ -58,20 +58,13 @@ class Bill extends BaseClass {
         }
 
         if ($by_active) {
-            if ($this->additional_query_empty()) {
-                $this->additional_query = ' WHERE ';
-            } else {
-                $this->additional_query .= ' AND ';
-            }
+            $this->additional_query_empty();
+
             $this->additional_query .= 'IsActive = ' . $this->is_active;
         }
 
         if ($by_end_date) {
-            if ($this->additional_query_empty()) {
-                $this->additional_query = ' WHERE ';
-            } else {
-                $this->additional_query .= ' AND ';
-            }
+            $this->additional_query_empty();
 
             $this->additional_query .= 'EndDate IS ' . $this->end_date;
         }

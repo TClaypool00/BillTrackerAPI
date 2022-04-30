@@ -40,9 +40,9 @@ class BaseClass {
 
     protected function additional_query_empty() {
         if ($this->additional_query === '' || $this->additional_query === null) {
-            return true;
+            $this->additional_query = ' WHERE ';
+        } else {
+            $this->additional_query .= ' AND ';
         }
-
-        return false;
     }
 }
