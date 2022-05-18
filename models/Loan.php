@@ -16,7 +16,7 @@ class Loan extends BaseClass {
     public function create() {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL insLoan('{$this->loan_name}', '{$this->monthly_amt_due}', '{$this->total_loan_amt}', '{$this->remaining_amt}', '{$this->user_id}');");
+        $this->stmt = $this->prepare_stmt("CALL insLoan('{$this->loan_name}', '{$this->monthly_amt_due}', '{$this->total_loan_amt}', '{$this->remaining_amt}', '{$this->company_id}');");
 
         return $this->stmt_executed();
     }

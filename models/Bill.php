@@ -17,7 +17,7 @@ class Bill extends BaseClass {
     public function create() {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL insBill('{$this->bill_name}', '{$this->amount_due}', '{$this->user_id}', '{$this->is_recurring}', '{$this->end_date}');");
+        $this->stmt = $this->prepare_stmt("CALL insBill('{$this->bill_name}', '{$this->amount_due}', '{$this->company_id}', '{$this->is_recurring}', '{$this->end_date}');");
 
         return $this->stmt_executed();
     }
@@ -74,6 +74,12 @@ class Bill extends BaseClass {
         $this->execute();
 
         return $this->stmt;
+    }
+
+    public function create_payment_history() {
+        $this->stmt = $this->prepare_stmt("CALL insPaymentHistory('{$this->bill_id}', '1');");
+
+        return $this->stmt_executed();
     }
 
     private function clean_data() {

@@ -6,7 +6,7 @@ include '../../global_functions.php';
 $bill->bill_name = $data->billName;
 $bill->amount_due = $data->amountDue;
 $bill->is_recurring = $data->isRecurring;
-$bill->user_id = $data->userId;
+$bill->company_id = $data->companyId;
 $bill->end_date = $data->endDate;
 
 if ($bill->create()) {
@@ -14,5 +14,5 @@ if ($bill->create()) {
     echo custom_array('Bill has been created');
 } else {
     http_response_code(400);
-    echo custom_array('bill could not be created');
+    echo custom_array('Bill could not be created');
 }

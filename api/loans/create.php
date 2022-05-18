@@ -7,7 +7,7 @@ $loan->loan_name = $data->loanName;
 $loan->monthly_amt_due = $data->monthlyAmtDue;
 $loan->total_loan_amt = $data->totalAmtDue;
 $loan->remaining_amt = $data->remaingAmt;
-$loan->user_id = $data->userId;
+$loan->company_id = $data->companyId;
 
 if ($loan->create()) {
     http_response_code(201);
