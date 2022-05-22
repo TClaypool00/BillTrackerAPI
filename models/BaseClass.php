@@ -19,6 +19,8 @@ class BaseClass {
     public $type_id;
     public $type_name;
 
+    public $date_due;
+
     protected function stmt_executed() {
         if ($this->stmt->execute()) {
             return true;

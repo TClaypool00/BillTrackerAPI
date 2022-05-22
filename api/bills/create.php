@@ -8,6 +8,7 @@ $bill->amount_due = $data->amountDue;
 $bill->is_recurring = $data->isRecurring;
 $bill->company_id = $data->companyId;
 $bill->end_date = $data->endDate;
+$bill->date_due = $data->dateDue;
 
 if ($bill->create()) {
     http_response_code(201);

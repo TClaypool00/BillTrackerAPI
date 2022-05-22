@@ -19,7 +19,7 @@ class Subscription extends BaseClass {
         $this->time_stamp = strtotime($this->due_date);
         $this->due_date = date('Y-m-d', $this->time_stamp);
 
-        $this->stmt = $this->prepare_stmt("CALL insSub('{$this->name}', '{$this->amount_due}', '{$this->due_date}', '{$this->company_id}');");
+        $this->stmt = $this->prepare_stmt("CALL insSub('{$this->name}', '{$this->amount_due}', '{$this->due_date}', '{$this->company_id}', '{$this->due_date}');");
 
         return $this->stmt_executed();
     }

@@ -17,7 +17,7 @@ class Bill extends BaseClass {
     public function create() {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL insBill('{$this->bill_name}', '{$this->amount_due}', '{$this->company_id}', '{$this->is_recurring}', '{$this->end_date}');");
+        $this->stmt = $this->prepare_stmt("CALL insBill('{$this->bill_name}', '{$this->amount_due}', '{$this->company_id}', '{$this->is_recurring}', '{$this->end_date}', '{$this->date_due}');");
 
         return $this->stmt_executed();
     }

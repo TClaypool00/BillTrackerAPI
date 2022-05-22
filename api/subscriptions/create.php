@@ -7,6 +7,7 @@ $sub->name = $data->name;
 $sub->amount_due = $data->amountDue;
 $sub->due_date = $data->dueDate;
 $sub->company_id = $data->companyId;
+$sub->due_date = $data->dueDate;
 
 if ($sub->create()) {
     http_response_code(201);
