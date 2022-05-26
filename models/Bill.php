@@ -74,13 +74,7 @@ class Bill extends BaseClass {
         $this->execute();
 
         return $this->stmt;
-    }
-
-    public function create_payment_history() {
-        $this->stmt = $this->prepare_stmt("CALL insPaymentHistory('{$this->bill_id}', '1');");
-
-        return $this->stmt_executed();
-    }
+    }    
 
     private function clean_data() {
         $this->bill_name = htmlspecialchars(strip_tags($this->bill_name));
