@@ -47,6 +47,12 @@ class BaseClass {
         return '$' . $value;
     }
 
+    public function pay($amount, $id, $type_id) {
+        $this->stmt = $this->prepare_stmt("CALL updPayExpense('{$id}', '{$amount}', '{$type_id}');");
+
+        return $this->stmt_executed();
+    }
+
     protected function additional_query_empty() {
         if ($this->additional_query === '' || $this->additional_query === null) {
             $this->additional_query = ' WHERE ';
