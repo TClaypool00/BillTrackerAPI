@@ -23,7 +23,7 @@ function set_id() {
     if (get_isset('id')) {
         return set_get_variable('id');
     } else {
-        echo 'id cannot be null';
+        echo custom_array('id cannot be null');
         die();
     }
 }
