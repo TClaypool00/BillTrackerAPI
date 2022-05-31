@@ -21,7 +21,7 @@ function display_list($array) {
 
 function set_id() {
     if (get_isset('id')) {
-        return set_get_variable('id');
+        return intval(set_get_variable('id'));
     } else {
         echo custom_array('id cannot be null');
         die();
