@@ -6,6 +6,8 @@ class BaseClass {
     protected $limit = ' LIMIT 0, 1';
     protected $row;
     protected $query;
+    protected $cannot_empty = ' cannot not be empty';
+    protected $too_long = ' can only be a maxiumn of 255 characters';
 
     public $user_id;
     public $user_first_name;
@@ -20,6 +22,8 @@ class BaseClass {
     public $type_name;
 
     public $date_due;
+
+    public $status;
 
     public function currency($value) {
         return '$' . $value;
@@ -79,6 +83,12 @@ class BaseClass {
         } else {
             http_response_code(400);
             custom_array('not valid');
+        }
+    }
+
+    protected function format_status() {
+        if ($this->status !== '') {
+            $this->status .= ' and ';
         }
     }
 }
