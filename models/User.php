@@ -77,6 +77,61 @@ class User extends BaseClass {
         return false;
     }
 
+    public function data_to_correct_format() {
+        $this->status = '';
+        
+        $this->user_first_name = strval($this->user_first_name);        
+        $this->user_last_name = strval($this->user_last_name);
+        $this->email = strval($this->email);
+        $this->phone_num = strval($this->phone_num);
+        $this->password = strval($this->password);
+        $this->confirm_password = strval($this->confirm_password);
+    }
+
+    public function data_too_long() {
+        if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+            $this->format_status();
+            $this->status .= 'Email address is not in the correct format';
+        }
+
+        if (strlen($this->user_first_name) > 255) {
+            $this->status .= 'First name' . $this->too_long;
+        }
+
+        if (strlen($this->user_last_name) > 255) {
+            $this->format_status();
+            $this->status .= 'Last name' . $this->too_long;
+        }
+
+        if (strlen($this->email) > 255) {
+            $this->format_status();
+            $this->status .= 'Email address' . $this->too_long;
+        }
+    }
+
+    public function data_is_empty() {
+        if (strlen($this->user_first_name) === 0 || ($this->user_first_name === null)) {
+            $this->format_status();
+            $this->status .= 'First name' . $this->cannot_empty;
+        }
+
+        if (strlen($this->user_last_name) === 0 || ($this->user_last_name === null)) {
+            $this->format_status();
+            $this->status .= 'Last name' . $this->cannot_empty;
+        }
+
+        if (strlen($this->email) === 0 || ($this->phone_num === null)) {
+            $this->format_status();
+            $this->status .= 'Email address' . $this->cannot_empty;
+        }
+
+        if ((strlen($this->phone_num) !== 10) || ($this->phone_num === null)) {
+            $this->format_status();
+            $this->status .= 'Phone number must be exactly 10 characters';
+        }
+    }
+    
+
     private function clean_data() {
         $this->user_first_name = htmlspecialchars(strip_tags($this->user_first_name));
         $this->user_last_name = htmlspecialchars(strip_tags($this->user_last_name));
