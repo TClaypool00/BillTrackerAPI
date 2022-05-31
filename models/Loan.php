@@ -74,6 +74,15 @@ class Loan extends BaseClass {
         return $this->stmt;
     }
 
+    public function loan_exists() {
+        $this->query = 'SELECT EXISTS(SELECT * FROM loans WHERE LoanId = ' . $this->loan_id .  ') AS LoanExists;';
+
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+
+        return $this->stmt->fetchColumn();
+    }
+
     private function clean_data() {
         $this->loan_name = htmlspecialchars(strip_tags($this->loan_name));
         $this->is_active = htmlspecialchars(strip_tags($this->is_active));

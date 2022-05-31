@@ -74,7 +74,16 @@ class Bill extends BaseClass {
         $this->execute();
 
         return $this->stmt;
-    }    
+    }
+
+    public function bill_exists() {
+        $this->query = 'SELECT EXISTS(SELECT * FROM bills WHERE BillId = ' . $this->bill_id .  ') AS BillExists;';
+
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+
+        return $this->stmt->fetchColumn();
+    }
 
     private function clean_data() {
         $this->bill_name = htmlspecialchars(strip_tags($this->bill_name));

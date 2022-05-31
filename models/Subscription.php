@@ -77,6 +77,15 @@ class Subscription extends BaseClass {
         return $this->stmt;
     }
 
+    public function sub_exists() {
+        $this->query = 'SELECT EXISTS(SELECT * FROM subscriptions WHERE SubscriptionId = ' . $this->subscription_id .  ') AS SubExists;';
+
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+
+        return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
     private function clean_data() {
         $this->name = htmlspecialchars(strip_tags($this->name));
         $this->amount_due = htmlspecialchars(strip_tags($this->amount_due));
