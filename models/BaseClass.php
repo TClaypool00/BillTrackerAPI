@@ -8,6 +8,8 @@ class BaseClass {
     protected $query;
     protected $cannot_empty = ' cannot not be empty';
     protected $too_long = ' can only be a maxiumn of 255 characters';
+    protected $cannot_be_null = ' cannot be null';
+    protected $time_stamp;
 
     public $user_id;
     public $user_first_name;
@@ -23,7 +25,7 @@ class BaseClass {
 
     public $date_due;
 
-    public $status;
+    public $status = '';
 
     public function currency($value) {
         return '$' . $value;
@@ -39,6 +41,27 @@ class BaseClass {
         $this->stmt = $this->prepare_stmt('SELECT IsPaid from paymenthistory where ExpenseId = ' . $id);
         $this->execute();
         return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
+    public function validate_is_active() {
+        if (!is_bool($this->is_active)) {
+            $this->format_status();
+            $this->status .= 'Is active has to be a boolean';
+        }
+    }
+
+    public function is_active_null() {
+        if (is_null($this->is_active)) {
+            $this->format_status();
+            $this->status .= 'Is active' . $this->cannot_be_null;
+        }
+    }
+
+    public function is_date_null() {
+        if (is_null($this->date_due)) {
+            $this->format_status();
+            $this->status .= 'Due date' . $this->cannot_be_null;
+        }
     }
 
     protected function stmt_executed() {
@@ -91,4 +114,28 @@ class BaseClass {
             $this->status .= ' and ';
         }
     }
+
+    protected function create_time_stamp($date_as_string) {
+        $this->time_stamp = strtotime($date_as_string);
+    }
+
+    protected function convert_string_to_date() {
+        return date('Y-m-d', $this->time_stamp);
+    }
+
+    protected function is_date($date_as_string) {
+        if (!is_null($date_as_string)) {
+            if (DateTime::createFromFormat('Y-m-d', $date_as_string) !== false) {
+                return true;
+            } else {
+                $this->format_status();
+                $this->status .= '"' . $date_as_string . '" is not a valid date';
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    
 }
