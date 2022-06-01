@@ -21,7 +21,13 @@ function display_list($array) {
 
 function set_id() {
     if (get_isset('id')) {
-        return intval(set_get_variable('id'));
+        $id = set_get_variable('id');
+        if (is_numeric($id)) {
+            return intval($id);
+        } else {
+            echo custom_array('id must be a number');
+            die();
+        }
     } else {
         echo custom_array('id cannot be null');
         die();
