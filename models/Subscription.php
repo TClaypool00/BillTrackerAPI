@@ -3,10 +3,8 @@ class Subscription extends BaseClass {
     public $subscription_id;
     public $name;
     public $amount_due;
-    public $due_date;
 
     private $select_all = 'SELECT * FROM wvsubscriptions';
-    private $time_stamp;
 
     public function __construct($db)
     {
@@ -16,10 +14,7 @@ class Subscription extends BaseClass {
     public function create() {
         $this->clean_data();
 
-        $this->time_stamp = strtotime($this->due_date);
-        $this->due_date = date('Y-m-d', $this->time_stamp);
-
-        $this->stmt = $this->prepare_stmt("CALL insSub('{$this->name}', '{$this->amount_due}', '{$this->due_date}', '{$this->company_id}', '{$this->due_date}');");
+        $this->stmt = $this->prepare_stmt("CALL insSub('{$this->name}', '{$this->amount_due}', '{$this->date_due}', '{$this->company_id}', '{$this->due_date}');");
 
         return $this->stmt_executed();
     }
@@ -27,10 +22,7 @@ class Subscription extends BaseClass {
     public function update() {
         $this->clean_data();
 
-        $this->time_stamp = strtotime($this->due_date);
-        $this->due_date = date('Y-m-d', $this->time_stamp);
-
-        $this->stmt = $this->prepare_stmt("CALL updSub('{$this->name}', '{$this->amount_due}', '{$this->due_date}', '{$this->is_active}', '{$this->company_id}', '{$this->subscription_id}');");
+        $this->stmt = $this->prepare_stmt("CALL updSub('{$this->name}', '{$this->amount_due}', '{$this->date_due}', '{$this->is_active}', '{$this->company_id}', '{$this->subscription_id}');");
 
         return $this->stmt_executed();
     }
@@ -86,10 +78,49 @@ class Subscription extends BaseClass {
         return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
+    public function format_data() {
+        $this->name = strval($this->name);
+        if (!is_numeric($this->amount_due)) {
+            $this->format_status();
+            $this->status .= 'Amount due must be a number';
+        } else {
+            $this->amount_due = doubleval($this->amount_due);
+        }
+
+        if (!is_null($this->company_id)) {
+            $this->company_id = intval($this->company_id);
+        } else {
+            $this->format_status();
+            $this->status .= 'Company Id cannot be be null';
+        }
+
+        if ($this->is_date($this->date_due)) {
+            $this->create_time_stamp($this->date_due);
+            $this->date_due = $this->convert_string_to_date();
+        }
+    }
+
+    public function validate_data() {
+        if ((strlen($this->name) === 0) || $this->name === null) {
+            $this->format_status();
+            $this->status .= 'Name' . $this->cannot_empty;
+        }
+
+        if ($this->amount_due <= 0) {
+            $this->format_status();
+            $this->status .= 'Amount due must be a positive number';
+        }
+
+        if ($this->company_id <= 0 && is_numeric($this->company_id)) {
+            $this->format_status();
+            $this->status .= 'Company Id must be a postive number';
+        }
+    }
+
     private function clean_data() {
         $this->name = htmlspecialchars(strip_tags($this->name));
         $this->amount_due = htmlspecialchars(strip_tags($this->amount_due));
-        $this->due_date = htmlspecialchars(strip_tags($this->due_date));
+        $this->date_due = htmlspecialchars(strip_tags($this->date_due));
         $this->company_id = htmlspecialchars(strip_tags($this->company_id));
         $this->is_active = htmlspecialchars(strip_tags($this->is_active));
     }
