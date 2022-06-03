@@ -10,7 +10,7 @@ if (get_isset('showPassword')) {
     $show_password = set_get_variable('showPassword');
 }
 
-$user->get($show_password);
+$user->get($show_password, false);
 
 if ($user->user_first_name != null) {
     $user_arr = array(
@@ -18,6 +18,7 @@ if ($user->user_first_name != null) {
         'firstName' => $user->user_first_name,
         'lastName' => $user->user_last_name,
         'email' => $user->email,
+        'phoneNum' => $user->phone_num,
         'password' => $user->password,
         'isAdmin' => $user->isAdmin
     );
