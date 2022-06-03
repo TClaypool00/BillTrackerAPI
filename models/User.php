@@ -11,6 +11,7 @@ class User extends BaseClass {
     public $confirm_password;
     public $isAdmin;
     public $phone_num;
+    public $token;
 
     public function __construct($db)
     {
@@ -34,18 +35,32 @@ class User extends BaseClass {
         return $this->stmt;
     }
 
-    public function get($show_password) {
-        $this->query = $this->select_all . ' WHERE UserId = ' . $this->user_id . $this->limit;
+    public function get($show_password, $by_email) {
+        $this->query = $this->select_all . ' WHERE ';
+
+        if ($by_email) {
+            $this->query .= "Email = '" . $this->email . "'";
+        } else {
+            $this->query .= 'UserId = ' . $this->user_id;
+        }
+
+        $this->query .= $this->limit;
 
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
         
         $this->row = $this->stmt->fetch(PDO::FETCH_ASSOC);
 
+        if ($this->user_id === null) {
+            $this->user_id = $this->row_value('UserId');
+        }
+
         $this->user_first_name = $this->row_value('FirstName');
         $this->user_last_name = $this->row_value('LastName');
         $this->email = $this->row_value('Email');
         $this->isAdmin = $this->row_value('IsAdmin');
+        $this->isAdmin = $this->convert_to_boolean($this->isAdmin);
+        $this->phone_num = $this->row_value('PhoneNumber');
 
         if ($show_password) {
             $this->password = $this->row_value('Password');
@@ -128,6 +143,17 @@ class User extends BaseClass {
         if ((strlen($this->phone_num) !== 10) || ($this->phone_num === null)) {
             $this->format_status();
             $this->status .= 'Phone number must be exactly 10 characters';
+        }
+    }
+
+    public function verify_password($password) {
+        if (password_verify($password, $this->password)) {
+            return true;
+        } else {
+            $this->format_status();
+            $this->status .= 'Password is correct';
+            
+            return false;
         }
     }
     
