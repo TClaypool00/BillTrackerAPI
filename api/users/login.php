@@ -16,7 +16,7 @@ if ($user->user_first_name != null) {
 
         $secret = new Secret($user->user_id);
 
-        $jwt= JWT::encode($secret->token, $secret->key, $secret->alg);
+        $jwt= JWT::encode($secret->token, Secret::$key, Secret::$alg);
 
         $user_arr = array(
             'userId' => $user->user_id,
