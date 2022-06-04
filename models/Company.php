@@ -69,7 +69,7 @@ class Company extends BaseClass {
 
     private function clean_data() {
         $this->company_name = htmlspecialchars(strip_tags($this->company_name));
-        $this->type_id = htmlspecialchars(strip_tags($this->user_id));
+        $this->type_id = htmlspecialchars(strip_tags($this->type_id));
         $this->user_id = htmlspecialchars(strip_tags($this->user_id));
     }
 }
