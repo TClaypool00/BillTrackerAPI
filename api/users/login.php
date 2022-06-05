@@ -14,7 +14,7 @@ $user->get(true, true);
 if ($user->user_first_name != null) {
     if ($user->verify_password($password)) {
 
-        $secret = new Secret($user->user_id);
+        $secret = new Secret($user->user_id, $user->isAdmin);
 
         $jwt= JWT::encode($secret->token, Secret::$key, Secret::$alg);
 
