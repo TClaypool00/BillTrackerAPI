@@ -66,10 +66,27 @@ class BaseClass {
         }
     }
 
+    public function is_user_id_null() {
+        if (is_null($this->user_id)) {
+            $this->format_status();
+            $this->status .= 'UserId' . $this->cannot_be_null;
+        }
+    }
+
     public function user_has_company() {
         $this->stmt = $this->prepare_stmt('SELECT EXISTS(SELECT * FROM companies WHERE CompanyId = ' . $this->company_id . ' AND UserId =' . $this->user_id . ') AS UserCompany');
         $this->execute();
         return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
+    public function validate_user_id() {
+        if ($this->user_id !== null) {
+            if (is_numeric($this->user_id)) {
+                $this->user_id = intval($this->user_id);
+            } else {
+                $this->status = 'UserId has to be number';
+            }
+        }
     }
 
     protected function stmt_executed() {
