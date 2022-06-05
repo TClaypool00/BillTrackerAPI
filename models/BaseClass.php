@@ -26,7 +26,6 @@ class BaseClass {
     public $date_due;
 
     public $status = '';
-    public $jwt = null;
 
     public function currency($value) {
         return '$' . $value;
