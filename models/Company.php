@@ -43,21 +43,19 @@ class Company extends BaseClass {
         $this->user_last_name = $this->row_value('LastName');
     }
 
-    public function get_all($by_user, $by_type, $by_active) {
-        if ($by_user) {
+    public function get_all() {
+        if ($this->user_id !== null) {
             $this->additional_query = ' WHERE UserId = ' . $this->user_id;
         }
 
-        if ($by_type) {
+        if ($this->type_id != null) {
             $this->additional_query_empty();
-
             $this->additional_query .= ' TypeId = ' . $this->type_id;
         }
 
-        if ($by_active) {
+        if ($this->is_active != null) {
             $this->additional_query_empty();
-
-            $this->additional_query = ' IsActive = ' . $this->is_active;
+            $this->additional_query .= ' IsActive = ' . $this->is_active;
         }
 
         $this->stmt = $this->prepare_stmt($this->select_all . $this->additional_query);
@@ -102,6 +100,14 @@ class Company extends BaseClass {
             $this->format_status();
             $this->status .= 'Type Id needs to be a positive number';
         }
+    }
+
+    public function all_data_empty() {
+        if ($this->user_id === null && $this->type_id === null && $this->is_active === null) {
+            return true;
+        }
+
+        return false;
     }
 
     private function clean_data() {
