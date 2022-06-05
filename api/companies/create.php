@@ -4,18 +4,28 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_company.php';
 include '../../partail_files/jwt_partial.php';
 
-$company->company_name = $data->companyName;
-$company->type_id = $data->typeId;
+$company->company_name = $data->companyName ?? null;
+$company->type_id = $data->typeId ?? null;
+
+$company->data_is_null(true);
+$company->format_data(true);
+$company->validate_data(true);
 
 try {
-    if ($company->create()) {
-        http_response_code(201);
-        echo custom_array('Company has been created');
+    if ($company->status === '') {
+        $company->user_id = $decoded->userId;
+        if ($company->create()) {
+            http_response_code(201);
+            echo custom_array('Company has been created');
+        } else {
+            http_response_code(400);
+            echo custom_array('Company could not be created');
+        }
     } else {
         http_response_code(400);
-        echo custom_array('Company could not be created');
+        echo custom_array($company->status);
     }
 } catch(Exception $e) {
-    http_response_code(400);
+    http_response_code(500);
     echo custom_array($e->getMessage());
 }

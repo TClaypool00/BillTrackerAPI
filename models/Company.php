@@ -67,6 +67,43 @@ class Company extends BaseClass {
         return $this->stmt;
     }
 
+    public function data_is_null($include_type) {
+        if ($this->company_name === null || $this->company_name === '') {
+            $this->format_status();
+            $this->status .= 'Company name' . $this->cannot_be_null;
+        }
+
+        if ($include_type && $this->type_id === null) {
+            $this->format_status();
+            $this->status .= 'Type Id' . $this->cannot_be_null;
+        }
+    }
+
+    public function format_data($include_type) {
+        $this->company_name = strval($this->company_name);
+
+        if ($this->type_id !== null  && $include_type) {
+            if (is_numeric($this->type_id)) {
+                $this->type_id = intval($this->type_id);
+            } else {
+                $this->format_status();
+                $this->status .= 'Type Id needs to be a number';
+            }
+        }
+    }
+
+    public function validate_data($include_type) {
+        if (strlen($this->company_name) > 255) {
+            $this->format_status();
+            $this->status .= 'Company name' . $this->too_long;
+        }
+
+        if ($this->type_id <= 0 && is_numeric($this->type_id) && $include_type) {
+            $this->format_status();
+            $this->status .= 'Type Id needs to be a positive number';
+        }
+    }
+
     private function clean_data() {
         $this->company_name = htmlspecialchars(strip_tags($this->company_name));
         $this->type_id = htmlspecialchars(strip_tags($this->type_id));

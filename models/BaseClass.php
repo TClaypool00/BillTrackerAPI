@@ -64,6 +64,12 @@ class BaseClass {
         }
     }
 
+    public function user_has_company() {
+        $this->stmt = $this->prepare_stmt('SELECT EXISTS(SELECT * FROM companies WHERE CompanyId = ' . $this->company_id . ' AND UserId =' . $this->user_id . ') AS UserCompany');
+        $this->execute();
+        return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
     protected function stmt_executed() {
         if ($this->stmt->execute()) {
             return true;
