@@ -27,6 +27,8 @@ class BaseClass {
 
     public $status = '';
 
+    public static $not_auth = 'Not authorized';
+
     public function currency($value) {
         return '$' . $value;
     }
