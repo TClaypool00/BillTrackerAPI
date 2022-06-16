@@ -93,11 +93,6 @@ class Subscription extends BaseClass {
             $this->format_status();
             $this->status .= 'Company Id cannot be be null';
         }
-
-        if ($this->is_date($this->date_due)) {
-            $this->create_time_stamp($this->date_due);
-            $this->date_due = $this->convert_string_to_date();
-        }
     }
 
     public function validate_data() {
