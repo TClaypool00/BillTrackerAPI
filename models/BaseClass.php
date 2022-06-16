@@ -1,33 +1,15 @@
 <?php
-class BaseClass {
+class BaseClass extends ValidateClass {
     protected $conn;
     protected $stmt;
     protected $additional_query;
     protected $limit = ' LIMIT 0, 1';
     protected $row;
     protected $query;
-    protected $cannot_empty = ' cannot not be empty';
-    protected $too_long = ' can only be a maxiumn of 255 characters';
-    protected $cannot_be_null = ' cannot be null';
     protected $time_stamp;
 
-    public $user_id;
-    public $user_first_name;
-    public $user_last_name;
-
-    public $is_active;
-
-    public $company_id;
-    public $company_name;
-
-    public $type_id;
-    public $type_name;
-
-    public $date_due;
-
-    public $status = '';
-
     public static $not_auth = 'Not authorized';
+    public static $does_not_have_company = 'You do not have access to this company';
 
     public function currency($value) {
         return '$' . $value;
@@ -45,13 +27,6 @@ class BaseClass {
         return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
-    public function validate_is_active() {
-        if (!is_bool($this->is_active)) {
-            $this->format_status();
-            $this->status .= 'Is active has to be a boolean';
-        }
-    }
-
     public function is_active_null() {
         if (is_null($this->is_active)) {
             $this->format_status();
@@ -59,34 +34,10 @@ class BaseClass {
         }
     }
 
-    public function is_date_null() {
-        if (is_null($this->date_due)) {
-            $this->format_status();
-            $this->status .= 'Due date' . $this->cannot_be_null;
-        }
-    }
-
-    public function is_user_id_null() {
-        if (is_null($this->user_id)) {
-            $this->format_status();
-            $this->status .= 'UserId' . $this->cannot_be_null;
-        }
-    }
-
     public function user_has_company() {
         $this->stmt = $this->prepare_stmt('SELECT EXISTS(SELECT * FROM companies WHERE CompanyId = ' . $this->company_id . ' AND UserId =' . $this->user_id . ') AS UserCompany');
         $this->execute();
         return $this->convert_to_boolean($this->stmt->fetchColumn());
-    }
-
-    public function validate_user_id() {
-        if ($this->user_id !== null) {
-            if (is_numeric($this->user_id)) {
-                $this->user_id = intval($this->user_id);
-            } else {
-                $this->status = 'UserId has to be number';
-            }
-        }
     }
 
     protected function stmt_executed() {
@@ -133,34 +84,4 @@ class BaseClass {
             custom_array('not valid');
         }
     }
-
-    protected function format_status() {
-        if ($this->status !== '') {
-            $this->status .= ' and ';
-        }
-    }
-
-    protected function create_time_stamp($date_as_string) {
-        $this->time_stamp = strtotime($date_as_string);
-    }
-
-    protected function convert_string_to_date() {
-        return date('Y-m-d', $this->time_stamp);
-    }
-
-    protected function is_date($date_as_string) {
-        if (!is_null($date_as_string)) {
-            if (DateTime::createFromFormat('Y-m-d', $date_as_string) !== false) {
-                return true;
-            } else {
-                $this->format_status();
-                $this->status .= '"' . $date_as_string . '" is not a valid date';
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    
 }
