@@ -1,7 +1,8 @@
 <?php
 include '../../partail_files/get_all_header.php';
-include '../../partail_files/object_partial_files/new_loan.php';
 include '../../global_functions.php';
+include '../../partail_files/object_partial_files/new_loan.php';
+include '../../partail_files/jwt_partial.php';
 
 $by_user = false;
 $by_active = false;

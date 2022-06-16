@@ -1,7 +1,8 @@
 <?php
 include '../../partail_files/update_header.php';
-include '../../partail_files/object_partial_files/new_loan.php';
 include '../../global_functions.php';
+include '../../partail_files/object_partial_files/new_loan.php';
+include '../../partail_files/jwt_partial.php';
 
 $loan->loan_id = set_id();
 $amount = $data->amount;
