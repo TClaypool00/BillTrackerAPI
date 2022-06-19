@@ -20,7 +20,7 @@
 <?php
 class Database {
     private $host = 'your host';
-    private $db_name = 'your database name';
+    private $db_name = 'billtracker';
     private $username = 'your username';
     private $password = 'your password';
     private $conn;
