@@ -21,20 +21,39 @@ class ValidateClass {
     protected $cannot_be_null = ' cannot be null';
     protected $must_be_num = ' must be a number';
     protected $not_found = ' not found';
+    protected $user_id_string = 'User Id';
 
-    public function validate_is_active() {
-        if (!is_bool($this->is_active)) {
-            $this->format_status();
-            $this->status .= 'Is active has to be a boolean';
-        } else{
-            $this->is_active = boolval($this->is_active);
+    public function validate_is_active($can_be_null = false) {
+        if ($this->is_active === null) {
+            if (!$can_be_null) {
+                $this->format_status();
+                $this->status .= 'Is Active' . $this->cannot_be_null;
+            }
+        } else {
+            if(is_string($this->is_active)){
+                if ($this->is_active === 'true') {
+                    $this->is_active = true;
+                } else if($this->is_active === 'false') {
+                    $this->is_active = 0;
+                } else {
+                    $this->format_status();
+                    $this->status .= 'Not a valid option';
+                }
+            } else if (is_bool($this->is_active)){
+                $this->is_active = boolval($this->is_active);
+            } else {
+                $this->format_status();
+                $this->status .= 'Is Active must be a boolean';
+            }
         }
     }
 
-    public function validate_company_id() {
+    public function validate_company_id($can_be_null = false) {
         if ($this->company_id === null) {
-            $this->format_status();
-            $this->status .= 'Company id' . $this->cannot_be_null;
+            if (!$can_be_null) {
+                $this->format_status();
+                $this->status .= 'Company Id' . $this->cannot_be_null;
+            }
         } else {
             if (is_numeric($this->company_id)) {
                 $this->company_id = intval($this->company_id);
@@ -52,16 +71,18 @@ class ValidateClass {
         }
     }
 
-    public function validate_user_id() {
+    public function validate_user_id($can_be_null = false) {
         if ($this->user_id === null) {
-            $this->format_status();
-            $this->status .= 'User id' . $this->cannot_be_null;
+            if (!$can_be_null) {
+                $this->format_status();
+                $this->status .= $this->user_id_string . $this->cannot_be_null;
+            }
         } else {
             if (is_numeric($this->user_id)) {
                 $this->user_id = intval($this->user_id);
             } else {
                 $this->format_status();
-                $this->status .= 'User Id' . $this->must_be_num;
+                $this->status .= $this->user_id_string . $this->must_be_num;
             }
         }
     }
