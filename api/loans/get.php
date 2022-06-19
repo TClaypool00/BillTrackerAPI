@@ -12,6 +12,14 @@ if (!$loan->loan_exists()) {
     die();
 }
 
+$loan->user_id = $decoded->userId;
+
+if (!$decoded->isAdmin && !$loan->user_has_loan()) {
+    http_response_code(403);
+    echo custom_array(Loan::$not_auth);
+    die();
+}
+
 $loan->get();
 
 $loan_arr = array(

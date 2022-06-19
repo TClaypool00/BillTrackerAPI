@@ -53,21 +53,19 @@ class Loan extends BaseClass {
         $this->company_name = $this->row_value('CompanyName');
     }
 
-    public function get_all($by_user, $by_company, $by_active) {
-        if ($by_user) {
+    public function get_all() {
+        if ($this->user_id !== null) {
             $this->additional_query = ' WHERE UserId = ' . $this->user_id;
         }
 
-        if ($by_company) {
+        if ($this->company_id !== null) {
             $this->additional_query_empty();
-
             $this->additional_query .= ' CompanyId = ' . $this->company_id;
         }
 
-        if ($by_active) {
+        if ($this->is_active !== null) {
             $this->additional_query_empty();
-
-            $this->additional_query = ' IsActive = ' . $this->is_active;
+            $this->additional_query .= ' IsActive = ' . $this->is_active;
         }
 
         $this->stmt = $this->prepare_stmt($this->select_all . $this->additional_query);
@@ -133,6 +131,15 @@ class Loan extends BaseClass {
             $this->format_status();
             $this->status .= 'Monthly amount due cannot be more than total amount';
         }
+    }
+
+    public function user_has_loan() {
+        $this->query = 'SELECT EXISTS(SELECT l.LoanId FROM loans l INNER JOIN companies c ON l.CompanyId = c.CompanyId WHERE l.LoanId = ' . $this->loan_id .  ' AND c.UserId = ' . $this->user_id . ') AS UserHasLoans;';
+
+        $this->stmt = $this->prepare_stmt($this->query);
+
+        $this->execute();
+        return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
     private function clean_data() {
