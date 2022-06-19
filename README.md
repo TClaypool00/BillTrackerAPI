@@ -14,7 +14,7 @@
 
 ### Additional files
 1. You will to create "config" folder. (case sensitive) It needs to be in the root directory
-2. Inside the config folder. Create a file called "Database.php" (case sensitive)
+2. Inside the config folder. Create a file called "Database.php" and "Secret.php" (both case sensitive)
 #### Database.php
 ```php
 <?php
