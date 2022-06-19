@@ -47,6 +47,8 @@ class Secret {
     public static $key = 'Your secret key';
     public static $alg = 'HS256';
 
+    public $token;
+
     private $issuer;
     private $audience = 'your audience';
     private $issued_at;
