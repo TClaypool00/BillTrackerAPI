@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 19, 2022 at 04:32 PM
+-- Generation Time: Jun 19, 2022 at 04:45 PM
 -- Server version: 10.4.22-MariaDB
 -- PHP Version: 8.1.2
 
@@ -22,6 +22,119 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `billtracker` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `billtracker`;
+
+DELIMITER $$
+--
+-- Procedures
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delMisc` (IN `id` INT(11))  DELETE FROM miscellaneous where MiscellaneousId = id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(15,2), IN `company_id` INT(11), IN `is_recurring` BOOLEAN, IN `end_date` DATE)  BEGIN
+	DECLARE billId INT;
+
+    INSERT INTO bills (BillName, AmountDue, CompanyId, IsRecurring, EndDate)
+    VALUES (bill_name, amount_due, company_id, is_recurring, end_date);
+
+    SET billId = LAST_INSERT_ID();
+    
+    INSERT INTO paymenthistory (ExpenseId, TypeId)
+    VALUES (billId, 1);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insCompany` (IN `company_name` VARCHAR(255), IN `user_id` INT(11), IN `type_id` INT(11))  INSERT INTO companies (CompanyName, UserId, TypeId)
+VALUES (company_name, user_id, type_id)$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(255), IN `monthly_amt_due` DECIMAL(11,2), IN `total_loan_amt` DECIMAL(11,2), IN `remaining_amt` DECIMAL(11,2), IN `company_id` INT(11), IN `date_due` DATE)  BEGIN
+	DECLARE loanId INT;
+
+	INSERT INTO loans (LoanName, MonthlyAmountDue, TotalAmountDue, RemainingAmount, CompanyId)
+	VALUES (loan_name, monthly_amt_due, total_loan_amt, remaining_amt, company_id);
+    
+    SET loanId = LAST_INSERT_ID();
+    
+    INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
+    VALUES (loanId, 2, date_due);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11))  BEGIN
+	DECLARE miscId INT;
+
+	INSERT INTO miscellaneous (Name, Amount, CompanyId)
+	VALUES (name, amount, company_id);
+    
+    SET miscId = LAST_INSERT_ID();
+    
+    INSERT INTO paymenthistory (ExpenseId, TypeId)
+    VALUES (miscId, 4);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insPaymentHistory` (IN `expense_id` INT(11), IN `type_id` INT(11))  INSERT INTO paymenthistory (ExpenseId, TypeId)
+VALUES (expense_id, type_id)$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `company_id` INT)  BEGIN
+	DECLARE subId INT;
+
+	INSERT INTO subscriptions (Name, AmountDue, DateDue, CompanyId)
+    VALUES (name, amount_due, due_date, company_id);
+    
+    SET subId = LAST_INSERT_ID();
+    
+    INSERT INTO paymenthistory (ExpenseId, TypeId)
+    VALUES (subId, 3);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insUser` (IN `first_name` VARCHAR(255), IN `last_name` VARCHAR(255), IN `email` VARCHAR(255), IN `password` VARCHAR(255), IN `phone_num` VARCHAR(10))  BEGIN
+	DECLARE user_id INT;
+	INSERT INTO users (FirstName, LastName, Email, Password, IsAdmin, PhoneNumber)
+    VALUES (first_name, last_name, email, password, FALSE, phone_num);
+    
+    SET user_id = LAST_INSERT_ID();
+    
+    INSERT INTO userprofile (UserId)
+    VALUES (user_id);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `selCompanyDropDown` (IN `type_id` INT(11), IN `user_id` INT(11))  SELECT c.CompanyId, c.CompanyName FROM companies c
+WHERE c.TypeId = type_id AND c.UserId = user_id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_recurring` BOOLEAN, IN `is_active` BOOLEAN, IN `end_date` DATE, IN `bill_id` INT(11))  UPDATE bills
+SET BillName = bill_name, AmountDue = amount_due, IsRecurring = is_recurring, IsActive = is_active, EndDate = end_date
+WHERE BillId = bill_id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updCompanyName` (IN `company_name` VARCHAR(255), IN `company_id` INT(11))  UPDATE companies
+SET CompanyName = company_name
+WHERE CompanyId = company_id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updLoan` (IN `loan_name` VARCHAR(255), IN `is_active` BOOLEAN, IN `monthly_amt_due` DECIMAL(11,2), IN `total_amt_due` DECIMAL(11,2), IN `remaining_amt_due` DECIMAL(11,2), IN `loan_id` INT(11))  UPDATE loans
+SET IsActive = is_active, MonthlyAmountDue = monthly_amt_due, TotalAmountDue = total_amt_due, RemainingAmount = remaining_amt_due
+WHERE LoanId = loan_id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11), IN `id` INT(11))  UPDATE miscellaneous
+SET Name = name, Amount = amount, CompanyId = company_id
+WHERE MiscellaneousId = id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updPayExpense` (IN `expense_id` INT(11), IN `amount` DECIMAL(11,2), IN `type_id` INT(11))  BEGIN
+    UPDATE paymenthistory
+    SET IsPaid = TRUE, DatePaid = NOW(), Amount = amount
+    WHERE ExpenseId = expense_id AND TypeId = type_id
+    AND MONTH(DateDue) = MONTH(NOW());
+
+    IF type_id = 2 THEN
+      UPDATE loans
+        SET RemainingAmount = RemainingAmount - amount
+        WHERE LoanId = expense_id;
+    END IF;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `is_active` BOOLEAN, IN `company_id` INT, IN `id` INT)  UPDATE subscriptions
+SET Name = name, AmountDue = amount_due, DateDue = due_date, IsActive = is_active, CompanyId = company_id
+WHERE SubscriptionId = id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updUser` (IN `first_name` VARCHAR(255), IN `last_name` VARCHAR(255), IN `email` VARCHAR(255), IN `phone_num` VARCHAR(10), IN `user_id` INT(11))  UPDATE users
+SET FirstName = first_name, LastName = last_name, Email = email, PhoneNumber = phone_num
+WHERE UserId = user_id$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
