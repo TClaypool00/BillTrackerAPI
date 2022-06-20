@@ -2,19 +2,27 @@
 
 ## Prerequisites
 ### Download XAMPP
-1. If you do not have installed already, please install XAMPP. You can do so by going to by click this link https://www.apachefriends.org/
-2. Follow the onscreen directions.
+1. If you do not have installed already, please install XAMPP. You can do so by going to by clicking this link https://www.apachefriends.org/
+2. Follow the onscreen directions to install the program.
 3. Once it is installed, run the XAMPP appliaction. (It is recommend that you are an adminstrator)
 
 ### Creating the Bill Tracker database
-1. Click the "Start" button beside "Appache" and "MySQL"
+1. Click the "Start" button beside "Appache" and "MySQL".
 2. Click the "Admin" button beside "MySQL", it will take you to phpMyAdmin website.
 3. Click the SQL tab at the top.
-4. Copy the contents from the "billtracker.sql" file and paste it into the whitespace in the phpMyAdmin
+4. Copy the contents from the "billtracker.sql" file and paste it into the whitespace in the phpMyAdmin.
+
+### Download the source code
+1. Either download or clone the git repository to local machine.
+2. Place the source code in the "htdocs" within the "xampp" folder. (Or whatever you named it when you isntalled XAMPP)
+3. (Optional) Clear all the contents of the "htdocs" folder.
+
+The path should look something like this:
+C:\xampp\htdocs
 
 ### Additional files
-1. You will to create "config" folder. (case sensitive) It needs to be in the root directory
-2. Inside the config folder. Create a file called "Database.php" and "Secret.php" (both case sensitive)
+1. You will need to create a "config" folder. (case sensitive) It needs to be in the root directory.
+2. Inside the config folder. Create a file called "Database.php" and "Secret.php". (both case sensitive)
 #### Database.php
 ```php
 <?php
