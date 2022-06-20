@@ -8,14 +8,14 @@
 
 ### Creating the Bill Tracker database
 1. Click the "Start" button beside "Appache" and "MySQL".
-2. Click the "Admin" button beside "MySQL", it will take you to phpMyAdmin website.
+2. Click the "Admin" button beside "MySQL", it will take you to the phpMyAdmin website.
 3. Click the SQL tab at the top.
 4. Copy the contents from the "billtracker.sql" file and paste it into the whitespace in the phpMyAdmin.
 
 ### Download the source code
 1. Either download or clone the git repository to local machine.
-2. Place the source code in the "htdocs" within the "xampp" folder. (Or whatever you named it when you isntalled XAMPP)
-3. (Optional) Clear all the contents of the "htdocs" folder.
+2. (Optional) Clear all the contents of the "htdocs" folder.
+3. Place the source code in the "htdocs" within the "xampp" folder. (Or whatever you named it when you isntalled XAMPP)
 
 The path should look something like this:
 C:\xampp\htdocs
