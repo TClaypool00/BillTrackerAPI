@@ -6,9 +6,7 @@ include '../../global_functions.php';
 $bill->bill_id = set_id();
 $bill->bill_name = $data->billName;
 $bill->amount_due = $data->amountDue;
-$bill->is_recurring = $data->isRecurring;
 $bill->is_active = $data->isActive;
-$bill->end_date = $data->endDate;
 
 if ($bill->update()) {
     http_response_code(200);
