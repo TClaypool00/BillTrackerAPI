@@ -1,4 +1,5 @@
 <?php
+include_once '../../models/ValidateClass.php';
 include_once '../../models/BaseClass.php';
 include_once '../../models/Bill.php';
 include_once '../../config/Database.php';
