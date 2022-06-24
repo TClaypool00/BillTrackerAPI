@@ -1,5 +1,6 @@
 <?php
-class Loan extends BaseClass {
+class Loan extends BaseClass
+{
     public $loan_id;
     public $loan_name;
     public $monthly_amt_due;
@@ -13,17 +14,17 @@ class Loan extends BaseClass {
     {
         $this->conn = $db;
         $this->loan_not_found = 'Loan' . $this->not_found;
-
     }
 
-    public function create() {
+    public function create()
+    {
         $this->clean_data();
 
         $this->stmt = $this->prepare_stmt("CALL insLoan('{$this->loan_name}', '{$this->monthly_amt_due}', '{$this->total_loan_amt}', '{$this->remaining_amt}', '{$this->company_id}', '{$this->date_due}');");
 
         return $this->stmt_executed();
     }
-    
+
     public function update()
     {
         $this->clean_data();
@@ -33,9 +34,10 @@ class Loan extends BaseClass {
         return $this->stmt_executed();
     }
 
-    public function get() {
+    public function get()
+    {
         $this->query = $this->select_all . ' WHERE  LoanId = ' . $this->loan_id . $this->limit;
-        
+
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
 
@@ -53,7 +55,8 @@ class Loan extends BaseClass {
         $this->company_name = $this->row_value('CompanyName');
     }
 
-    public function get_all() {
+    public function get_all()
+    {
         if ($this->user_id !== null) {
             $this->additional_query = ' WHERE UserId = ' . $this->user_id;
         }
@@ -75,7 +78,8 @@ class Loan extends BaseClass {
         return $this->stmt;
     }
 
-    public function loan_exists() {
+    public function loan_exists()
+    {
         $this->query = 'SELECT EXISTS(SELECT * FROM loans WHERE LoanId = ' . $this->loan_id .  ') AS LoanExists;';
 
         $this->stmt = $this->prepare_stmt($this->query);
@@ -84,7 +88,8 @@ class Loan extends BaseClass {
         return $this->stmt->fetchColumn();
     }
 
-    public function data_is_null() {
+    public function data_is_null()
+    {
         if (is_null($this->loan_name)) {
             $this->format_status();
             $this->status .= 'Loan name' . $this->cannot_be_null;
@@ -103,25 +108,27 @@ class Loan extends BaseClass {
         }
     }
 
-    public function format_data() {
-        if (!is_null($this->monthly_amt_due) && is_numeric($this->monthly_amt_due)){
+    public function format_data()
+    {
+        if (!is_null($this->monthly_amt_due) && is_numeric($this->monthly_amt_due)) {
             $this->monthly_amt_due = doubleval($this->monthly_amt_due);
         } else {
             $this->format_status();
             $this->status .= 'Monthly amount' . $this->must_be_num;
         }
 
-        if (!is_null($this->total_loan_amt) && is_numeric($this->total_loan_amt)){
-            $this->total_loan_amt = doubleval($this->monthly_amt_due);
+        if (!is_null($this->total_loan_amt) && is_numeric($this->total_loan_amt)) {
+            $this->total_loan_amt = doubleval($this->total_loan_amt);
         } else {
             $this->format_status();
             $this->status .= 'Total amount' . $this->must_be_num;
         }
-        
+
         $this->format_remaing_amount();
     }
 
-    public function validate_amount() {
+    public function validate_amount()
+    {
         if ($this->remaining_amt >  $this->total_loan_amt) {
             $this->format_status();
             $this->status .= 'Remaining amount cannot be more than total amount';
@@ -133,7 +140,8 @@ class Loan extends BaseClass {
         }
     }
 
-    public function user_has_loan() {
+    public function user_has_loan()
+    {
         $this->query = 'SELECT EXISTS(SELECT l.LoanId FROM loans l INNER JOIN companies c ON l.CompanyId = c.CompanyId WHERE l.LoanId = ' . $this->loan_id .  ' AND c.UserId = ' . $this->user_id . ') AS UserHasLoans;';
 
         $this->stmt = $this->prepare_stmt($this->query);
@@ -142,7 +150,8 @@ class Loan extends BaseClass {
         return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
-    private function clean_data() {
+    private function clean_data()
+    {
         $this->loan_name = htmlspecialchars(strip_tags($this->loan_name));
         $this->is_active = htmlspecialchars(strip_tags($this->is_active));
         $this->monthly_amt_due = htmlspecialchars(strip_tags($this->monthly_amt_due));
@@ -150,8 +159,9 @@ class Loan extends BaseClass {
         $this->remaining_amt = htmlspecialchars(strip_tags($this->remaining_amt));
         $this->user_id = htmlspecialchars(strip_tags($this->user_id));
     }
-    
-    private function format_remaing_amount() {
+
+    private function format_remaing_amount()
+    {
         if (is_null($this->remaining_amt)) {
             if (is_numeric($this->total_loan_amt)) {
                 $this->remaining_amt = $this->total_loan_amt;
