@@ -1,5 +1,6 @@
 <?php
-class Subscription extends BaseClass {
+class Subscription extends BaseClass
+{
     public $subscription_id;
     public $name;
     public $amount_due;
@@ -11,15 +12,17 @@ class Subscription extends BaseClass {
         $this->conn = $db;
     }
 
-    public function create() {
+    public function create()
+    {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL insSub('{$this->name}', '{$this->amount_due}', '{$this->date_due}', '{$this->company_id}', '{$this->due_date}');");
+        $this->stmt = $this->prepare_stmt("CALL insSub('{$this->name}', '{$this->amount_due}', '{$this->date_due}', '{$this->company_id}');");
 
         return $this->stmt_executed();
     }
 
-    public function update() {
+    public function update()
+    {
         $this->clean_data();
 
         $this->stmt = $this->prepare_stmt("CALL updSub('{$this->name}', '{$this->amount_due}', '{$this->date_due}', '{$this->is_active}', '{$this->company_id}', '{$this->subscription_id}');");
@@ -27,7 +30,8 @@ class Subscription extends BaseClass {
         return $this->stmt_executed();
     }
 
-    public function get() {
+    public function get()
+    {
         $this->query = $this->select_all . ' WHERE SubscriptionId = ' . $this->subscription_id;
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
@@ -45,7 +49,8 @@ class Subscription extends BaseClass {
         $this->user_last_name = $this->row_value('LastName');
     }
 
-    public function get_all() {
+    public function get_all()
+    {
         if ($this->user_id != null) {
             $this->additional_query = ' WHERE UserId = ' . $this->user_id;
         }
@@ -69,7 +74,8 @@ class Subscription extends BaseClass {
         return $this->stmt;
     }
 
-    public function sub_exists() {
+    public function sub_exists()
+    {
         $this->query = 'SELECT EXISTS(SELECT * FROM subscriptions WHERE SubscriptionId = ' . $this->subscription_id .  ') AS SubExists;';
 
         $this->stmt = $this->prepare_stmt($this->query);
@@ -78,7 +84,8 @@ class Subscription extends BaseClass {
         return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
-    public function format_data() {
+    public function format_data()
+    {
         $this->name = strval($this->name);
         if (!is_numeric($this->amount_due)) {
             $this->format_status();
@@ -95,7 +102,8 @@ class Subscription extends BaseClass {
         }
     }
 
-    public function validate_data() {
+    public function validate_data()
+    {
         if ((strlen($this->name) === 0) || $this->name === null) {
             $this->format_status();
             $this->status .= 'Name' . $this->cannot_empty;
@@ -112,7 +120,8 @@ class Subscription extends BaseClass {
         }
     }
 
-    private function clean_data() {
+    private function clean_data()
+    {
         $this->name = htmlspecialchars(strip_tags($this->name));
         $this->amount_due = htmlspecialchars(strip_tags($this->amount_due));
         $this->date_due = htmlspecialchars(strip_tags($this->date_due));
