@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.1
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 19, 2022 at 04:45 PM
--- Server version: 10.4.22-MariaDB
--- PHP Version: 8.1.2
+-- Generation Time: Jun 24, 2022 at 05:42 AM
+-- Server version: 10.4.24-MariaDB
+-- PHP Version: 8.1.6
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -27,24 +27,24 @@ DELIMITER $$
 --
 -- Procedures
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `delMisc` (IN `id` INT(11))  DELETE FROM miscellaneous where MiscellaneousId = id$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delMisc` (IN `id` INT(11))   DELETE FROM miscellaneous where MiscellaneousId = id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(15,2), IN `company_id` INT(11), IN `is_recurring` BOOLEAN, IN `end_date` DATE)  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(15,2), IN `company_id` INT(11), IN `date_due` DATE)   BEGIN
 	DECLARE billId INT;
 
-    INSERT INTO bills (BillName, AmountDue, CompanyId, IsRecurring, EndDate)
-    VALUES (bill_name, amount_due, company_id, is_recurring, end_date);
+    INSERT INTO bills (BillName, AmountDue, CompanyId)
+    VALUES (bill_name, amount_due, company_id);
 
     SET billId = LAST_INSERT_ID();
     
-    INSERT INTO paymenthistory (ExpenseId, TypeId)
-    VALUES (billId, 1);
+    INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
+    VALUES (billId, 1, date_due);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insCompany` (IN `company_name` VARCHAR(255), IN `user_id` INT(11), IN `type_id` INT(11))  INSERT INTO companies (CompanyName, UserId, TypeId)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insCompany` (IN `company_name` VARCHAR(255), IN `user_id` INT(11), IN `type_id` INT(11))   INSERT INTO companies (CompanyName, UserId, TypeId)
 VALUES (company_name, user_id, type_id)$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(255), IN `monthly_amt_due` DECIMAL(11,2), IN `total_loan_amt` DECIMAL(11,2), IN `remaining_amt` DECIMAL(11,2), IN `company_id` INT(11), IN `date_due` DATE)  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(255), IN `monthly_amt_due` DECIMAL(11,2), IN `total_loan_amt` DECIMAL(11,2), IN `remaining_amt` DECIMAL(11,2), IN `company_id` INT(11), IN `date_due` DATE)   BEGIN
 	DECLARE loanId INT;
 
 	INSERT INTO loans (LoanName, MonthlyAmountDue, TotalAmountDue, RemainingAmount, CompanyId)
@@ -56,7 +56,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(25
     VALUES (loanId, 2, date_due);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11))  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11))   BEGIN
 	DECLARE miscId INT;
 
 	INSERT INTO miscellaneous (Name, Amount, CompanyId)
@@ -68,22 +68,22 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insMisc` (IN `name` VARCHAR(255), I
     VALUES (miscId, 4);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insPaymentHistory` (IN `expense_id` INT(11), IN `type_id` INT(11))  INSERT INTO paymenthistory (ExpenseId, TypeId)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insPaymentHistory` (IN `expense_id` INT(11), IN `type_id` INT(11))   INSERT INTO paymenthistory (ExpenseId, TypeId)
 VALUES (expense_id, type_id)$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `company_id` INT)  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `company_id` INT)   BEGIN
 	DECLARE subId INT;
 
-	INSERT INTO subscriptions (Name, AmountDue, DateDue, CompanyId)
-    VALUES (name, amount_due, due_date, company_id);
+	INSERT INTO subscriptions (Name, AmountDue, CompanyId)
+    VALUES (name, amount_due, company_id);
     
     SET subId = LAST_INSERT_ID();
     
-    INSERT INTO paymenthistory (ExpenseId, TypeId)
-    VALUES (subId, 3);
+    INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
+    VALUES (subId, 3, due_date);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insUser` (IN `first_name` VARCHAR(255), IN `last_name` VARCHAR(255), IN `email` VARCHAR(255), IN `password` VARCHAR(255), IN `phone_num` VARCHAR(10))  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insUser` (IN `first_name` VARCHAR(255), IN `last_name` VARCHAR(255), IN `email` VARCHAR(255), IN `password` VARCHAR(255), IN `phone_num` VARCHAR(10))   BEGIN
 	DECLARE user_id INT;
 	INSERT INTO users (FirstName, LastName, Email, Password, IsAdmin, PhoneNumber)
     VALUES (first_name, last_name, email, password, FALSE, phone_num);
@@ -94,26 +94,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insUser` (IN `first_name` VARCHAR(2
     VALUES (user_id);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `selCompanyDropDown` (IN `type_id` INT(11), IN `user_id` INT(11))  SELECT c.CompanyId, c.CompanyName FROM companies c
+CREATE DEFINER=`root`@`localhost` PROCEDURE `selCompanyDropDown` (IN `type_id` INT(11), IN `user_id` INT(11))   SELECT c.CompanyId, c.CompanyName FROM companies c
 WHERE c.TypeId = type_id AND c.UserId = user_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_recurring` BOOLEAN, IN `is_active` BOOLEAN, IN `end_date` DATE, IN `bill_id` INT(11))  UPDATE bills
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_recurring` BOOLEAN, IN `is_active` BOOLEAN, IN `end_date` DATE, IN `bill_id` INT(11))   UPDATE bills
 SET BillName = bill_name, AmountDue = amount_due, IsRecurring = is_recurring, IsActive = is_active, EndDate = end_date
 WHERE BillId = bill_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updCompanyName` (IN `company_name` VARCHAR(255), IN `company_id` INT(11))  UPDATE companies
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updCompanyName` (IN `company_name` VARCHAR(255), IN `company_id` INT(11))   UPDATE companies
 SET CompanyName = company_name
 WHERE CompanyId = company_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updLoan` (IN `loan_name` VARCHAR(255), IN `is_active` BOOLEAN, IN `monthly_amt_due` DECIMAL(11,2), IN `total_amt_due` DECIMAL(11,2), IN `remaining_amt_due` DECIMAL(11,2), IN `loan_id` INT(11))  UPDATE loans
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updLoan` (IN `loan_name` VARCHAR(255), IN `is_active` BOOLEAN, IN `monthly_amt_due` DECIMAL(11,2), IN `total_amt_due` DECIMAL(11,2), IN `remaining_amt_due` DECIMAL(11,2), IN `loan_id` INT(11))   UPDATE loans
 SET IsActive = is_active, MonthlyAmountDue = monthly_amt_due, TotalAmountDue = total_amt_due, RemainingAmount = remaining_amt_due
 WHERE LoanId = loan_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11), IN `id` INT(11))  UPDATE miscellaneous
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11), IN `id` INT(11))   UPDATE miscellaneous
 SET Name = name, Amount = amount, CompanyId = company_id
 WHERE MiscellaneousId = id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updPayExpense` (IN `expense_id` INT(11), IN `amount` DECIMAL(11,2), IN `type_id` INT(11))  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updPayExpense` (IN `expense_id` INT(11), IN `amount` DECIMAL(11,2), IN `type_id` INT(11))   BEGIN
     UPDATE paymenthistory
     SET IsPaid = TRUE, DatePaid = NOW(), Amount = amount
     WHERE ExpenseId = expense_id AND TypeId = type_id
@@ -126,11 +126,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updPayExpense` (IN `expense_id` INT
     END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `is_active` BOOLEAN, IN `company_id` INT, IN `id` INT)  UPDATE subscriptions
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `is_active` BOOLEAN, IN `company_id` INT, IN `id` INT)   UPDATE subscriptions
 SET Name = name, AmountDue = amount_due, DateDue = due_date, IsActive = is_active, CompanyId = company_id
 WHERE SubscriptionId = id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updUser` (IN `first_name` VARCHAR(255), IN `last_name` VARCHAR(255), IN `email` VARCHAR(255), IN `phone_num` VARCHAR(10), IN `user_id` INT(11))  UPDATE users
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updUser` (IN `first_name` VARCHAR(255), IN `last_name` VARCHAR(255), IN `email` VARCHAR(255), IN `phone_num` VARCHAR(10), IN `user_id` INT(11))   UPDATE users
 SET FirstName = first_name, LastName = last_name, Email = email, PhoneNumber = phone_num
 WHERE UserId = user_id$$
 
@@ -146,9 +146,7 @@ CREATE TABLE `bills` (
   `BillId` int(11) NOT NULL,
   `BillName` varchar(255) NOT NULL,
   `AmountDue` decimal(15,2) NOT NULL,
-  `IsRecurring` tinyint(1) NOT NULL,
   `IsActive` tinyint(1) NOT NULL DEFAULT 1,
-  `EndDate` date DEFAULT NULL,
   `CompanyId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -209,8 +207,7 @@ CREATE TABLE `paymenthistory` (
   `IsPaid` tinyint(1) NOT NULL DEFAULT 0,
   `DateDue` date NOT NULL,
   `DatePaid` date DEFAULT NULL,
-  `IsLate` tinyint(1) NOT NULL DEFAULT 0,
-  `Amount` decimal(11,2) NOT NULL DEFAULT 0.00
+  `IsLate` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -223,7 +220,6 @@ CREATE TABLE `subscriptions` (
   `SubscriptionId` int(11) NOT NULL,
   `Name` varchar(255) NOT NULL,
   `AmountDue` decimal(11,2) NOT NULL,
-  `DateDue` date NOT NULL,
   `IsActive` tinyint(1) NOT NULL DEFAULT 1,
   `CompanyId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -289,11 +285,14 @@ CREATE TABLE `vwbills` (
 `BillId` int(11)
 ,`BillName` varchar(255)
 ,`AmountDue` decimal(15,2)
-,`IsRecurring` tinyint(1)
 ,`IsActive` tinyint(1)
-,`EndDate` date
+,`DateDue` date
+,`DatePaid` date
+,`IsPaid` tinyint(1)
+,`IsLate` tinyint(1)
 ,`CompanyId` int(11)
 ,`CompanyName` varchar(255)
+,`UserId` int(11)
 ,`FirstName` varchar(255)
 ,`LastName` varchar(255)
 );
@@ -328,6 +327,10 @@ CREATE TABLE `vwloans` (
 ,`MonthlyAmountDue` decimal(11,2)
 ,`TotalAmountDue` decimal(11,2)
 ,`RemainingAmount` decimal(11,2)
+,`DateDue` date
+,`DatePaid` date
+,`IsPaid` tinyint(1)
+,`IsLate` tinyint(1)
 ,`CompanyId` int(11)
 ,`CompanyName` varchar(255)
 ,`UserId` int(11)
@@ -379,8 +382,11 @@ CREATE TABLE `wvsubscriptions` (
 `SubscriptionId` int(11)
 ,`Name` varchar(255)
 ,`AmountDue` decimal(11,2)
-,`DateDue` date
 ,`IsActive` tinyint(1)
+,`DateDue` date
+,`DatePaid` date
+,`IsPaid` tinyint(1)
+,`IsLate` tinyint(1)
 ,`CompanyId` int(11)
 ,`CompanyName` varchar(255)
 ,`UserId` int(11)
@@ -395,7 +401,7 @@ CREATE TABLE `wvsubscriptions` (
 --
 DROP TABLE IF EXISTS `vwbills`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwbills`  AS SELECT `b`.`BillId` AS `BillId`, `b`.`BillName` AS `BillName`, `b`.`AmountDue` AS `AmountDue`, `b`.`IsRecurring` AS `IsRecurring`, `b`.`IsActive` AS `IsActive`, `b`.`EndDate` AS `EndDate`, `b`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`bills` `b` join `companies` `c` on(`c`.`CompanyId` = `b`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwbills`  AS SELECT `b`.`BillId` AS `BillId`, `b`.`BillName` AS `BillName`, `b`.`AmountDue` AS `AmountDue`, `b`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `b`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`bills` `b` join `companies` `c` on(`c`.`CompanyId` = `b`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `b`.`BillId` and `h`.`TypeId` = 1 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
 
 -- --------------------------------------------------------
 
@@ -404,7 +410,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `vwcompanies`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwcompanies`  AS SELECT `c`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`TypeId` AS `TypeId`, `c`.`UserId` AS `UserId`, `c`.`IsActive` AS `IsActive`, `t`.`TypeName` AS `TypeName`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`companies` `c` join `types` `t` on(`t`.`TypeId` = `c`.`TypeId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwcompanies`  AS SELECT `c`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`TypeId` AS `TypeId`, `c`.`UserId` AS `UserId`, `c`.`IsActive` AS `IsActive`, `t`.`TypeName` AS `TypeName`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`companies` `c` join `types` `t` on(`t`.`TypeId` = `c`.`TypeId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`))  ;
 
 -- --------------------------------------------------------
 
@@ -413,7 +419,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `vwloans`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwloans`  AS SELECT `l`.`LoanId` AS `LoanId`, `l`.`LoanName` AS `LoanName`, `l`.`IsActive` AS `IsActive`, `l`.`MonthlyAmountDue` AS `MonthlyAmountDue`, `l`.`TotalAmountDue` AS `TotalAmountDue`, `l`.`RemainingAmount` AS `RemainingAmount`, `l`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `u`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`loans` `l` join `companies` `c` on(`c`.`CompanyId` = `l`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwloans`  AS SELECT `l`.`LoanId` AS `LoanId`, `l`.`LoanName` AS `LoanName`, `l`.`IsActive` AS `IsActive`, `l`.`MonthlyAmountDue` AS `MonthlyAmountDue`, `l`.`TotalAmountDue` AS `TotalAmountDue`, `l`.`RemainingAmount` AS `RemainingAmount`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `l`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`loans` `l` join `companies` `c` on(`c`.`CompanyId` = `l`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `l`.`LoanId` and `h`.`TypeId` = 2 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
 
 -- --------------------------------------------------------
 
@@ -422,7 +428,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `vwmiscellaneous`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwmiscellaneous`  AS SELECT `m`.`MiscellaneousId` AS `MiscellaneousId`, `m`.`Name` AS `Name`, `m`.`Amount` AS `Amount`, `m`.`DateAdded` AS `DateAdded`, `m`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `u`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`miscellaneous` `m` join `companies` `c` on(`c`.`CompanyId` = `m`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwmiscellaneous`  AS SELECT `m`.`MiscellaneousId` AS `MiscellaneousId`, `m`.`Name` AS `Name`, `m`.`Amount` AS `Amount`, `m`.`DateAdded` AS `DateAdded`, `m`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `u`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`miscellaneous` `m` join `companies` `c` on(`c`.`CompanyId` = `m`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`))  ;
 
 -- --------------------------------------------------------
 
@@ -431,7 +437,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `vwusers`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwusers`  AS SELECT `users`.`UserId` AS `UserId`, `users`.`FirstName` AS `FirstName`, `users`.`LastName` AS `LastName`, `users`.`Email` AS `Email`, `users`.`PhoneNumber` AS `PhoneNumber`, `users`.`Password` AS `Password`, `users`.`IsAdmin` AS `IsAdmin` FROM `users` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwusers`  AS SELECT `users`.`UserId` AS `UserId`, `users`.`FirstName` AS `FirstName`, `users`.`LastName` AS `LastName`, `users`.`Email` AS `Email`, `users`.`PhoneNumber` AS `PhoneNumber`, `users`.`Password` AS `Password`, `users`.`IsAdmin` AS `IsAdmin` FROM `users``users`  ;
 
 -- --------------------------------------------------------
 
@@ -440,7 +446,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `wvsubscriptions`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `wvsubscriptions`  AS SELECT `s`.`SubscriptionId` AS `SubscriptionId`, `s`.`Name` AS `Name`, `s`.`AmountDue` AS `AmountDue`, `s`.`DateDue` AS `DateDue`, `s`.`IsActive` AS `IsActive`, `s`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `u`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`subscriptions` `s` join `companies` `c` on(`s`.`CompanyId` = `c`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `wvsubscriptions`  AS SELECT `s`.`SubscriptionId` AS `SubscriptionId`, `s`.`Name` AS `Name`, `s`.`AmountDue` AS `AmountDue`, `s`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `s`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`subscriptions` `s` join `companies` `c` on(`c`.`CompanyId` = `s`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `s`.`SubscriptionId` and `h`.`TypeId` = 3 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
 
 --
 -- Indexes for dumped tables
