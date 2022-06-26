@@ -83,6 +83,49 @@ class Bill extends BaseClass
         return $this->stmt->fetchColumn();
     }
 
+    public function data_is_null() {
+        if (is_null($this->bill_name)) {
+            $this->status .= 'Bill name' . $this->cannot_be_null;
+        }
+
+        if (is_null($this->amount_due)) {
+            $this->format_status();
+            $this->status = 'Amount due ' . $this->cannot_be_null;
+        }
+    }
+
+    public function validate_bill_name() {
+        if (!is_null($this->bill_name)){
+            if (is_string($this->bill_name)) {
+                if ($this->bill_name !== '') {
+                    $this->bill_name = strval($this->bill_name);
+                } else {
+                    $this->format_status();
+                    $this->status .= 'Bill name ' . $this->cannot_empty;
+                }
+            } else {
+                $this->format_status();
+                $this->status .= 'Bill name must be a string';
+            }
+        }
+    }
+
+    public function validate_amount_due() {
+        if(!is_null($this->amount_due)) {
+            if (is_numeric($this->amount_due)) {
+                if ($this->amount_due > 0) {
+                    $this->amount_due = intval($this->amount_due);
+                } else {
+                    $this->format_status();
+                    $this->status .= '';
+                }
+            } else {
+                $this->format_status();
+                $this->status .= 'Amount due must be a number';
+            }
+        }
+    }
+
     private function clean_data()
     {
         $this->bill_name = htmlspecialchars(strip_tags($this->bill_name));
