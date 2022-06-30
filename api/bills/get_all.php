@@ -3,6 +3,7 @@ include '../../partail_files/get_all_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_bill.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/BooleanTypes.php';
 
 if (get_isset('userId')) {
     $bill->user_id = set_get_variable('userId');
@@ -22,13 +23,34 @@ if (get_isset('companyId')) {
     $bill->company_id = null;
 }
 
+if (get_isset('isPaid')) {
+    $bill->is_paid = set_get_variable('isPaid');
+} else {
+    $bill->is_paid = null;
+}
+
+if (get_isset('isLate')) {
+    $bill->is_late = set_get_variable('isLate');
+} else {
+    $bill->is_late = null;
+}
+
+if (get_isset('showCurrency')) {
+    $bill->show_currency = set_get_variable('showCurrency');
+} else {
+    $bill->show_currency = false;
+}
+
 $bill->validate_user_id(true);
 $bill->validate_is_active(true);
 $bill->validate_company_id(true);
+$bill->validate_boolean(BooleanTypes::IsPaid, true);
+$bill->validate_boolean(BooleanTypes::IsLate, true);
+$bill->validate_boolean(BooleanTypes::IsCurrency, true);
 
 if ($bill->status_is_empty()) {
     if (!$decoded->isAdmin) {
-        if ($bill->is_active === null && $bill->user_id === null) {
+        if ($bill->is_active === null && $bill->user_id === null && $bill->is_paid === null && $bill->is_late === null) {
             http_response_code(403);
             echo custom_array(Bill::$all_params_null);
             die();
@@ -46,6 +68,10 @@ if ($bill->status_is_empty()) {
                 echo custom_array(Bill::$does_not_have_company);
                 die();
             }
+        } else {
+            http_response_code(403);
+            echo custom_array(Bill::$user_id_null);
+            die();
         }
     }
 
@@ -59,10 +85,14 @@ if ($bill->status_is_empty()) {
         while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
             extract($row);
 
+            if($bill->show_currency) {
+                $AmountDue = currency($AmountDue);
+            }
+
             $bill_item = array(
                 'billId' => $BillId,
                 'billName' => $BillName,
-                'amountDue' => currency($AmountDue),
+                'amountDue' => $AmountDue,
                 'isActive' => boolval($IsActive),
                 'dateDue' => $DateDue,
                 'datePaid' => $DatePaid,

@@ -43,9 +43,7 @@ class Bill extends BaseClass
 
         $this->bill_name = $this->row_value('BillName');
         $this->amount_due = $this->row_value('AmountDue');
-        $this->is_recurring = $this->row_value('IsRecurring');
         $this->is_active = $this->row_value('IsActive');
-        $this->end_date = $this->row_value('EndDate');
         $this->user_id = $this->row_value('UserId');
         $this->user_first_name = $this->row_value('FirstName');
         $this->user_last_name = $this->row_value('LastName');
@@ -63,6 +61,16 @@ class Bill extends BaseClass
             $this->additional_query_empty();
 
             $this->additional_query .= 'IsActive = ' . $this->is_active;
+        }
+
+        if ($this->is_paid !== null) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'IsPaid =' . $this->is_paid;
+        }
+
+        if ($this->is_late !== null) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'IsLate =' . $this->is_late;
         }
 
         $this->stmt = $this->prepare_stmt($this->query . $this->additional_query);
