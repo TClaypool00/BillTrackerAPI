@@ -8,13 +8,6 @@ class BaseClass extends ValidateClass {
     protected $query;
     protected $time_stamp;
 
-    public static $not_auth = 'Not authorized';
-    public static $does_not_have_company = 'You do not have access to this company';
-
-    public function currency($value) {
-        return '$' . $value;
-    }
-
     public function pay($amount, $id, $type_id) {
         $this->stmt = $this->prepare_stmt("CALL updPayExpense('{$id}', '{$amount}', '{$type_id}');");
 

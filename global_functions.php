@@ -33,3 +33,7 @@ function set_id() {
         die();
     }
 }
+
+function currency($value) {
+    return '$' . $value;
+}
