@@ -5,6 +5,7 @@ class Bill extends BaseClass
     public $bill_name;
     public $amount_due;
     public $amount_due_curr;
+    public $not_access_bill = 'You do have have access to this bill';
 
     private $select_all = 'SELECT * FROM vwbills';
 
@@ -48,19 +49,17 @@ class Bill extends BaseClass
         $this->user_id = $this->row_value('UserId');
         $this->user_first_name = $this->row_value('FirstName');
         $this->user_last_name = $this->row_value('LastName');
-
-        $this->amount_due_curr = $this->currency($this->amount_due);
     }
 
-    public function get_all($by_user, $by_active)
+    public function get_all()
     {
         $this->query = $this->select_all;
 
-        if ($by_user) {
+        if ($this->user_id !== null) {
             $this->additional_query = ' WHERE UserId = ' . $this->user_id;
         }
 
-        if ($by_active) {
+        if ($this->is_active !== null) {
             $this->additional_query_empty();
 
             $this->additional_query .= 'IsActive = ' . $this->is_active;
@@ -75,8 +74,17 @@ class Bill extends BaseClass
 
     public function bill_exists()
     {
-        $this->query = 'SELECT EXISTS(SELECT * FROM bills WHERE BillId = ' . $this->bill_id .  ') AS BillExists;';
+        $this->query = 'SELECT EXISTS(SELECT BillId FROM bills WHERE BillId = ' . $this->bill_id .  ') AS BillExists;';
 
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+
+        return $this->stmt->fetchColumn();
+    }
+
+    public function user_has_bill() {
+        $this->query = 'SELECT EXISTS (SELECT BillId from bills b INNER JOIN companies c ON c.CompanyId = b.CompanyId WHERE c.UserId = ' . $this->user_id . ' AND b.BillId = ' . $this->bill_id . ') AS UserHasBill';
+    
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
 
@@ -90,7 +98,7 @@ class Bill extends BaseClass
 
         if (is_null($this->amount_due)) {
             $this->format_status();
-            $this->status = 'Amount due ' . $this->cannot_be_null;
+            $this->status .= 'Amount due ' . $this->cannot_be_null;
         }
     }
 
@@ -130,8 +138,9 @@ class Bill extends BaseClass
     {
         $this->bill_name = htmlspecialchars(strip_tags($this->bill_name));
         $this->amount_due = htmlentities(strip_tags($this->amount_due));
-        $this->is_recurring = htmlspecialchars(strip_tags($this->is_recurring));
         $this->user_id = htmlspecialchars(strip_tags($this->user_id));
-        $this->end_date = htmlspecialchars(strip_tags($this->end_date));
+        $this->company_id = htmlspecialchars(strip_tags($this->company_id));
+        $this->is_active = htmlspecialchars(strip_tags($this->is_active));
+        $this->date_due = htmlspecialchars(strip_tags($this->date_due));
     }
 }

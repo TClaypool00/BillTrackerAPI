@@ -1,9 +1,17 @@
 <?php
 include '../../partail_files/get_header.php';
-include '../../partail_files/object_partial_files/new_bill.php';
 include '../../global_functions.php';
+include '../../partail_files/object_partial_files/new_bill.php';
+include '../../partail_files/jwt_partial.php';
 
 $bill->bill_id = set_id();
+$bill->user_id = $decoded->userId;
+
+if (!$decoded->isAdmin && !$bill->user_has_bill()) {
+    http_response_code(403);
+    echo custom_array($bill->not_access_bill);
+    die();
+}
 
 $bill->get();
 
