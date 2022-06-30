@@ -33,6 +33,14 @@ class BaseClass extends ValidateClass {
         return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
+    public function all_params_null() {
+        if ($this->is_active === null && $this->user_id === null && $this->is_paid === null && $this->is_late === null && $this->company_id === null) {
+            return true;
+        }
+
+        return false;
+    }
+
     protected function stmt_executed() {
         if ($this->stmt->execute()) {
             return true;
@@ -76,5 +84,18 @@ class BaseClass extends ValidateClass {
             http_response_code(400);
             custom_array('not valid');
         }
+    }
+
+    protected function base_get() {
+        $this->is_active = $this->row_value('IsActive');
+        $this->date_due = $this->row_value('DateDue');
+        $this->date_paid = $this->row_value('DatePaid');
+        $this->is_paid = $this->row_value('IsPaid');
+        $this->is_late = $this->row_value('IsLate');
+        $this->company_id = $this->row_value('CompanyId');
+        $this->company_name = $this->row_value('CompanyName');
+        $this->user_id = $this->row_value('UserId');
+        $this->user_first_name = $this->row_value('FirstName');
+        $this->user_last_name = $this->row_value('LastName');
     }
 }

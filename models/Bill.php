@@ -43,10 +43,7 @@ class Bill extends BaseClass
 
         $this->bill_name = $this->row_value('BillName');
         $this->amount_due = $this->row_value('AmountDue');
-        $this->is_active = $this->row_value('IsActive');
-        $this->user_id = $this->row_value('UserId');
-        $this->user_first_name = $this->row_value('FirstName');
-        $this->user_last_name = $this->row_value('LastName');
+        $this->base_get();
     }
 
     public function get_all()
