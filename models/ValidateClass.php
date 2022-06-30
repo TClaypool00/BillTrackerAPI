@@ -15,12 +15,13 @@ class ValidateClass {
     public $date_due;
     public $is_late;
     public $is_paid;
-    public $is_currency;
+    public $show_currency;
 
     public $status = '';
     public static $all_params_null = 'Only admins can have all parameters be null';
     public static $not_auth = 'Not authorized';
     public static $does_not_have_company = 'You do not have access to this company';
+    public static $user_id_null = 'User Id cannot be null';
     
     protected $cannot_empty = ' cannot not be empty';
     protected $too_long = ' can only be a maxiumn of 255 characters';
@@ -68,11 +69,8 @@ class ValidateClass {
                 $value_name = 'Is Late';
                 break;
             case BooleanTypes::IsCurrency:
-                $value = $this->is_currency;
+                $value = $this->show_currency;
                 $value_name ='Is currency';
-                break;
-            default:
-                throw new Exception('Not a valid option');
                 break;
         }
 
@@ -89,7 +87,7 @@ class ValidateClass {
                     $value = 0;
                 } else {
                     $this->format_status();
-                    $this->status .= 'Not a valid option';
+                    $this->status .= $value_name . ' is not a valid string';
                 }
             } else if (is_bool($value)){
                 $value = boolval($value);
@@ -107,9 +105,6 @@ class ValidateClass {
                 $this->is_late = $value;
             case BooleanTypes::IsCurrency:
                 $this->is_currency = $value;
-            default:
-                throw new Exception('Not a valid option');
-                break;
         }
     }
 
