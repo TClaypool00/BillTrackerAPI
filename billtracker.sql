@@ -437,7 +437,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `vwusers`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwusers`  AS SELECT `users`.`UserId` AS `UserId`, `users`.`FirstName` AS `FirstName`, `users`.`LastName` AS `LastName`, `users`.`Email` AS `Email`, `users`.`PhoneNumber` AS `PhoneNumber`, `users`.`Password` AS `Password`, `users`.`IsAdmin` AS `IsAdmin` FROM `users``users`  ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwusers`  AS SELECT `users`.`UserId` AS `UserId`, `users`.`FirstName` AS `FirstName`, `users`.`LastName` AS `LastName`, `users`.`Email` AS `Email`, `users`.`PhoneNumber` AS `PhoneNumber`, `users`.`Password` AS `Password`, `users`.`IsAdmin` AS `IsAdmin` FROM `users`;
 
 -- --------------------------------------------------------
 

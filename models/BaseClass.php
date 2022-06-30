@@ -8,13 +8,6 @@ class BaseClass extends ValidateClass {
     protected $query;
     protected $time_stamp;
 
-    public static $not_auth = 'Not authorized';
-    public static $does_not_have_company = 'You do not have access to this company';
-
-    public function currency($value) {
-        return '$' . $value;
-    }
-
     public function pay($amount, $id, $type_id) {
         $this->stmt = $this->prepare_stmt("CALL updPayExpense('{$id}', '{$amount}', '{$type_id}');");
 
@@ -38,6 +31,14 @@ class BaseClass extends ValidateClass {
         $this->stmt = $this->prepare_stmt('SELECT EXISTS(SELECT * FROM companies WHERE CompanyId = ' . $this->company_id . ' AND UserId =' . $this->user_id . ') AS UserCompany');
         $this->execute();
         return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
+    public function all_params_null() {
+        if ($this->is_active === null && $this->user_id === null && $this->is_paid === null && $this->is_late === null && $this->company_id === null) {
+            return true;
+        }
+
+        return false;
     }
 
     protected function stmt_executed() {
@@ -83,5 +84,18 @@ class BaseClass extends ValidateClass {
             http_response_code(400);
             custom_array('not valid');
         }
+    }
+
+    protected function base_get() {
+        $this->is_active = $this->row_value('IsActive');
+        $this->date_due = $this->row_value('DateDue');
+        $this->date_paid = $this->row_value('DatePaid');
+        $this->is_paid = $this->row_value('IsPaid');
+        $this->is_late = $this->row_value('IsLate');
+        $this->company_id = $this->row_value('CompanyId');
+        $this->company_name = $this->row_value('CompanyName');
+        $this->user_id = $this->row_value('UserId');
+        $this->user_first_name = $this->row_value('FirstName');
+        $this->user_last_name = $this->row_value('LastName');
     }
 }

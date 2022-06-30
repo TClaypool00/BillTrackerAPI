@@ -13,8 +13,16 @@ class ValidateClass {
     public $type_name;
 
     public $date_due;
+    public $date_paid;
+    public $is_late;
+    public $is_paid;
+    public $show_currency;
 
     public $status = '';
+    public static $all_params_null = 'Only admins can have all parameters be null';
+    public static $not_auth = 'Not authorized';
+    public static $does_not_have_company = 'You do not have access to this company';
+    public static $user_id_null = 'User Id cannot be null';
     
     protected $cannot_empty = ' cannot not be empty';
     protected $too_long = ' can only be a maxiumn of 255 characters';
@@ -22,6 +30,7 @@ class ValidateClass {
     protected $must_be_num = ' must be a number';
     protected $not_found = ' not found';
     protected $user_id_string = 'User Id';
+    protected $not_an_option = 'Not a valid option';
 
     public function validate_is_active($can_be_null = false) {
         if ($this->is_active === null) {
@@ -37,7 +46,7 @@ class ValidateClass {
                     $this->is_active = 0;
                 } else {
                     $this->format_status();
-                    $this->status .= 'Not a valid option';
+                    $this->status .= $this->not_an_option;
                 }
             } else if (is_bool($this->is_active)){
                 $this->is_active = boolval($this->is_active);
@@ -45,6 +54,65 @@ class ValidateClass {
                 $this->format_status();
                 $this->status .= 'Is Active must be a boolean';
             }
+        }
+    }
+
+    public function validate_boolean(BooleanTypes $type, $can_be_null = false) {
+        $value = null;
+        $value_name = '';
+
+        switch ($type) {
+            case BooleanTypes::IsPaid:
+                $value = $this->is_paid;
+                $value_name = 'Is Paid';
+                break;
+            case BooleanTypes::IsLate:
+                $value = $this->is_late;
+                $value_name = 'Is Late';
+                break;
+            case BooleanTypes::ShowCurrency:
+                $value = $this->show_currency;
+                $value_name ='Show currency';
+                break;
+            default:
+                throw new TypeError($this->not_an_option);
+        }
+
+        if ($value === null) {
+            if (!$can_be_null) {
+                $this->format_status();
+                $this->status .= $value_name . $this->cannot_be_null;
+            }
+        } else {
+            if(is_string($value)){
+                if ($value === 'true') {
+                    $value = true;
+                } else if($value === 'false') {
+                    $value = 0;
+                } else {
+                    $this->format_status();
+                    $this->status .= $value_name . ' is not a valid string';
+                }
+            } else if (is_bool($value)){
+                $value = boolval($value);
+            } else {
+                $this->format_status();
+                $this->status .= $value_name . ' must be a boolean';
+            }
+        }
+
+        switch ($type) {
+            case BooleanTypes::IsPaid:
+                $this->is_paid = $value;
+                break;
+            case BooleanTypes::IsLate:
+                $this->is_late = $value;
+                break;
+            case BooleanTypes::ShowCurrency:
+                $this->show_currency = $value;
+                break;
+            default:
+            throw new TypeError($this->not_an_option);
         }
     }
 
@@ -126,5 +194,13 @@ class ValidateClass {
             $this->format_status();
             $this->status .= 'Date due is not a valid date';
         }
+    }
+
+    public function status_is_empty() {
+        if ($this->status === '') {
+            return true;
+        }
+
+        return false;
     }
 }
