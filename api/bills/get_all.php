@@ -46,11 +46,11 @@ $bill->validate_is_active(true);
 $bill->validate_company_id(true);
 $bill->validate_boolean(BooleanTypes::IsPaid, true);
 $bill->validate_boolean(BooleanTypes::IsLate, true);
-$bill->validate_boolean(BooleanTypes::IsCurrency, true);
+$bill->validate_boolean(BooleanTypes::ShowCurrency, true);
 
 if ($bill->status_is_empty()) {
     if (!$decoded->isAdmin) {
-        if ($bill->is_active === null && $bill->user_id === null && $bill->is_paid === null && $bill->is_late === null) {
+        if ($bill->all_params_null()) {
             http_response_code(403);
             echo custom_array(Bill::$all_params_null);
             die();

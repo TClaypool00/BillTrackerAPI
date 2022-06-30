@@ -13,6 +13,7 @@ class ValidateClass {
     public $type_name;
 
     public $date_due;
+    public $date_paid;
     public $is_late;
     public $is_paid;
     public $show_currency;
@@ -29,6 +30,7 @@ class ValidateClass {
     protected $must_be_num = ' must be a number';
     protected $not_found = ' not found';
     protected $user_id_string = 'User Id';
+    protected $not_an_option = 'Not a valid option';
 
     public function validate_is_active($can_be_null = false) {
         if ($this->is_active === null) {
@@ -44,7 +46,7 @@ class ValidateClass {
                     $this->is_active = 0;
                 } else {
                     $this->format_status();
-                    $this->status .= 'Not a valid option';
+                    $this->status .= $this->not_an_option;
                 }
             } else if (is_bool($this->is_active)){
                 $this->is_active = boolval($this->is_active);
@@ -68,10 +70,12 @@ class ValidateClass {
                 $value = $this->is_late;
                 $value_name = 'Is Late';
                 break;
-            case BooleanTypes::IsCurrency:
+            case BooleanTypes::ShowCurrency:
                 $value = $this->show_currency;
-                $value_name ='Is currency';
+                $value_name ='Show currency';
                 break;
+            default:
+                throw new TypeError($this->not_an_option);
         }
 
         if ($value === null) {
@@ -103,8 +107,12 @@ class ValidateClass {
                 break;
             case BooleanTypes::IsLate:
                 $this->is_late = $value;
-            case BooleanTypes::IsCurrency:
-                $this->is_currency = $value;
+                break;
+            case BooleanTypes::ShowCurrency:
+                $this->show_currency = $value;
+                break;
+            default:
+            throw new TypeError($this->not_an_option);
         }
     }
 
