@@ -13,8 +13,14 @@ class ValidateClass {
     public $type_name;
 
     public $date_due;
+    public $is_late;
+    public $is_paid;
+    public $is_currency;
 
     public $status = '';
+    public static $all_params_null = 'Only admins can have all parameters be null';
+    public static $not_auth = 'Not authorized';
+    public static $does_not_have_company = 'You do not have access to this company';
     
     protected $cannot_empty = ' cannot not be empty';
     protected $too_long = ' can only be a maxiumn of 255 characters';
@@ -45,6 +51,65 @@ class ValidateClass {
                 $this->format_status();
                 $this->status .= 'Is Active must be a boolean';
             }
+        }
+    }
+
+    public function validate_boolean(BooleanTypes $type, $can_be_null = false) {
+        $value = null;
+        $value_name = '';
+
+        switch ($type) {
+            case BooleanTypes::IsPaid:
+                $value = $this->is_paid;
+                $value_name = 'Is Paid';
+                break;
+            case BooleanTypes::IsLate:
+                $value = $this->is_late;
+                $value_name = 'Is Late';
+                break;
+            case BooleanTypes::IsCurrency:
+                $value = $this->is_currency;
+                $value_name ='Is currency';
+                break;
+            default:
+                throw new Exception('Not a valid option');
+                break;
+        }
+
+        if ($value === null) {
+            if (!$can_be_null) {
+                $this->format_status();
+                $this->status .= $value_name . $this->cannot_be_null;
+            }
+        } else {
+            if(is_string($value)){
+                if ($value === 'true') {
+                    $value = true;
+                } else if($value === 'false') {
+                    $value = 0;
+                } else {
+                    $this->format_status();
+                    $this->status .= 'Not a valid option';
+                }
+            } else if (is_bool($value)){
+                $value = boolval($value);
+            } else {
+                $this->format_status();
+                $this->status .= $value_name . ' must be a boolean';
+            }
+        }
+
+        switch ($type) {
+            case BooleanTypes::IsPaid:
+                $this->is_paid = $value;
+                break;
+            case BooleanTypes::IsLate:
+                $this->is_late = $value;
+            case BooleanTypes::IsCurrency:
+                $this->is_currency = $value;
+            default:
+                throw new Exception('Not a valid option');
+                break;
         }
     }
 
@@ -126,5 +191,13 @@ class ValidateClass {
             $this->format_status();
             $this->status .= 'Date due is not a valid date';
         }
+    }
+
+    public function status_is_empty() {
+        if ($this->status === '') {
+            return true;
+        }
+
+        return false;
     }
 }
