@@ -183,13 +183,19 @@ class ValidateClass {
         return date('Y-m-d', $this->time_stamp);
     } 
 
-    public function validate_date() {
+    public function validate_date($can_be_null = false, $can_be_in_past = false) {
         if ($this->date_due === null) {
-            $this->format_status();
-            $this->status .= 'Date due cannot be null';
+            if (!$can_be_null) {
+                $this->format_status();
+                $this->status .= 'Date due cannot be null';
+            }
         } else if($this->is_date($this->date_due)) {
             $this->create_time_stamp($this->date_due);
             $this->date_due = $this->convert_string_to_date();
+            if (!$can_be_in_past && ($this->date_due < strtotime(date('Y-m-d')))) {
+                $this->format_status();
+                $this->status .= 'Due Dae cannot be in the past';
+            }
         } else {
             $this->format_status();
             $this->status .= 'Date due is not a valid date';

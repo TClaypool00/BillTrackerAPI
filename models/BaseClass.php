@@ -20,13 +20,6 @@ class BaseClass extends ValidateClass {
         return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
-    public function is_active_null() {
-        if (is_null($this->is_active)) {
-            $this->format_status();
-            $this->status .= 'Is active' . $this->cannot_be_null;
-        }
-    }
-
     public function user_has_company() {
         $this->stmt = $this->prepare_stmt('SELECT EXISTS(SELECT * FROM companies WHERE CompanyId = ' . $this->company_id . ' AND UserId =' . $this->user_id . ') AS UserCompany');
         $this->execute();
@@ -34,7 +27,7 @@ class BaseClass extends ValidateClass {
     }
 
     public function all_params_null() {
-        if ($this->is_active === null && $this->user_id === null && $this->is_paid === null && $this->is_late === null && $this->company_id === null) {
+        if ($this->is_active === null && $this->user_id === null && $this->is_paid === null && $this->is_late === null && $this->company_id === null && $this->date_due === null) {
             return true;
         }
 

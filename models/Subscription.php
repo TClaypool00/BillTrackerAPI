@@ -5,6 +5,8 @@ class Subscription extends BaseClass
     public $name;
     public $amount_due;
 
+    public static $not_access = 'You do have access to this Subscription';
+
     private $select_all = 'SELECT * FROM wvsubscriptions';
 
     public function __construct($db)
@@ -40,13 +42,8 @@ class Subscription extends BaseClass
 
         $this->name = $this->row_value('Name');
         $this->amount_due = $this->row_value('AmountDue');
-        $this->due_date = $this->row_value('DueDate');
-        $this->is_active = $this->row_value('IsActive');
-        $this->company_id = $this->row_value('CompanyId');
-        $this->company_name = $this->row_value('CompanyName');
-        $this->user_id = $this->row_value('UserId');
-        $this->user_first_name = $this->row_value('FirstName');
-        $this->user_last_name = $this->row_value('LastName');
+
+        $this->base_get();
     }
 
     public function get_all()
@@ -57,14 +54,27 @@ class Subscription extends BaseClass
 
         if ($this->company_id != null) {
             $this->additional_query_empty();
-
             $this->additional_query .= 'CompanyId = ' . $this->company_id;
         }
 
         if ($this->due_date != null) {
             $this->additional_query_empty();
-
             $this->additional_query .= 'DueDate = ' . $this->due_date;
+        }
+
+        if ($this->is_active !== null) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'IsActive = ' . $this->due_date;
+        }
+
+        if ($this->is_late !== null) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'IsLate = ' . $this->due_date;
+        }
+
+        if ($this->is_paid !== null) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'IsPaid = ' . $this->due_date;
         }
 
         $this->stmt = $this->prepare_stmt($this->select_all . $this->additional_query);
@@ -76,7 +86,7 @@ class Subscription extends BaseClass
 
     public function sub_exists()
     {
-        $this->query = 'SELECT EXISTS(SELECT * FROM subscriptions WHERE SubscriptionId = ' . $this->subscription_id .  ') AS SubExists;';
+        $this->query = 'SELECT EXISTS(SELECT SubscriptionId FROM subscriptions WHERE SubscriptionId = ' . $this->subscription_id .  ') AS SubExists;';
 
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
@@ -84,39 +94,62 @@ class Subscription extends BaseClass
         return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
-    public function format_data()
-    {
-        $this->name = strval($this->name);
-        if (!is_numeric($this->amount_due)) {
-            $this->format_status();
-            $this->status .= 'Amount due must be a number';
-        } else {
-            $this->amount_due = doubleval($this->amount_due);
+    public function user_has_sub() {
+        $this->query = 'SELECT EXISTS(SELECT s.SubscriptionId FROM subscriptions s INNER JOIN companies c ON s.CompanyId = c.CompanyId WHERE s.SubscriptionId = ' . $this->subscription_id . ' AND c.UserId = ' . $this->user_id . ') AS UserHasSub';
+    
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+
+        return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
+    public function data_is_null() {
+        if ($this->name === null) {
+            $this->status = 'Name' . $this->cannot_be_null;
         }
 
-        if (!is_null($this->company_id)) {
-            $this->company_id = intval($this->company_id);
-        } else {
+        if ($this->amount_due === null) {
             $this->format_status();
-            $this->status .= 'Company Id cannot be be null';
+            $this->status .= 'Amount due' . $this->cannot_be_null;
         }
     }
 
-    public function validate_data()
-    {
-        if ((strlen($this->name) === 0) || $this->name === null) {
-            $this->format_status();
-            $this->status .= 'Name' . $this->cannot_empty;
+    public function validate_data() {
+        if (!is_null($this->name)) {
+            if (is_string($this->name)) {
+                $this->name = strval($this->name);
+            } else {
+                $this->format_status();
+                $this->status .= 'Name must be a string';
+            }
         }
 
-        if ($this->amount_due <= 0) {
+        if (!is_null($this->amount_due)) {
+            if (is_numeric($this->amount_due)) {
+                $this->amount_due = doubleval($this->amount_due);
+            } else {
+                $this->format_status();
+                $this->status .= 'Amount due maust be number';
+            }
+        }
+    }
+
+    public function data_too_small() {
+        if (is_string($this->name) && $this->name === '') {
+            $this->format_status();
+            $this->status .= 'Name cannot be an empty string';
+        }
+
+        if (is_double($this->amount_due) && $this->amount_due <= 0) {
             $this->format_status();
             $this->status .= 'Amount due must be a positive number';
         }
+    }
 
-        if ($this->company_id <= 0 && is_numeric($this->company_id)) {
+    public function data_too_long() {
+        if (is_string($this->name) && strlen($this->name) > 255) {
             $this->format_status();
-            $this->status .= 'Company Id must be a postive number';
+            $this->status .= 'Name' . $this->too_long;
         }
     }
 
