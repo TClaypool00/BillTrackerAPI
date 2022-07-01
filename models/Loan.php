@@ -44,15 +44,10 @@ class Loan extends BaseClass
         $this->row = $this->stmt->fetch(PDO::FETCH_ASSOC);
 
         $this->loan_name = $this->row_value('LoanName');
-        $this->is_active = $this->row_value('IsActive');
         $this->monthly_amt_due = $this->row_value('MonthlyAmountDue');
         $this->total_loan_amt = $this->row_value('TotalAmountDue');
         $this->remaining_amt = $this->row_value('RemainingAmount');
-        $this->user_id = $this->row_value('UserId');
-        $this->company_id = $this->row_value('CompanyId');
-        $this->user_first_name = $this->row_value('FirstName');
-        $this->user_last_name = $this->row_value('LastName');
-        $this->company_name = $this->row_value('CompanyName');
+        $this->base_get();
     }
 
     public function get_all()
@@ -69,6 +64,16 @@ class Loan extends BaseClass
         if ($this->is_active !== null) {
             $this->additional_query_empty();
             $this->additional_query .= ' IsActive = ' . $this->is_active;
+        }
+
+        if ($this->is_paid !== null) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'IsPaid = ' . $this->is_paid;
+        }
+
+        if ($this->is_late !== null) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'IsLate = ' . $this->is_late;
         }
 
         $this->stmt = $this->prepare_stmt($this->select_all . $this->additional_query);

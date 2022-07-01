@@ -3,6 +3,7 @@ include '../../partail_files/get_all_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_loan.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/BooleanTypes.php';
 
 if (get_isset('userId')) {
     $loan->user_id = set_get_variable('userId');
@@ -22,22 +23,55 @@ if (get_isset('companyId')) {
     $loan->company_id = null;
 }
 
+if (get_isset('isPaid')) {
+    $loan->is_paid = set_get_variable('isPaid');
+} else {
+    $loan->is_paid = null;
+}
+
+if (get_isset('isLate')) {
+    $loan->is_late = set_get_variable('isLate');
+} else {
+    $loan->is_late = null;
+}
+
+if (get_isset('showCurrency')) {
+    $loan->show_currency = set_get_variable('showCurrency');
+} else {
+    $loan->show_currency = false;
+}
+
 $loan->validate_user_id(true);
 $loan->validate_company_id(true);
 $loan->validate_is_active(true);
+$loan->validate_boolean(BooleanTypes::IsLate, true);
+$loan->validate_boolean(BooleanTypes::IsPaid, true);
+$loan->validate_boolean(BooleanTypes::ShowCurrency);
 
-if ($loan->status === '') {
+if ($loan->status_is_empty()) {
     if (!$decoded->isAdmin) {
-        if ($decoded->userId !== $loan->user_id) {
+        if ($loan->all_params_null()) {
             http_response_code(403);
-            echo custom_array(Loan::$not_auth);
+            echo custom_array(Loan::$all_params_null);
             die();
-        } else {
-            if (!$loan->user_has_company()) {
+        }
+
+        if (!is_null($loan->user_id)) {
+            if ($decoded->userId !== $loan->user_id) {
                 http_response_code(403);
-                echo custom_array(Loan::$does_not_have_company);
+                echo custom_array(Loan::$not_auth);
                 die();
+            } else {
+                if (!is_null($loan->company_id) && !$loan->user_has_company()) {
+                    http_response_code(403);
+                    echo custom_array(Loan::$does_not_have_company);
+                    die();
+                }
             }
+        } else {
+            http_response_code(403);
+            echo custom_array(Loan::$user_id_null);
+            die();
         }
     }
 
@@ -51,13 +85,23 @@ if ($loan->status === '') {
         while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
             extract($row);
 
+            if ($loan->show_currency) {
+                $MonthlyAmountDue = currency($MonthlyAmountDue);
+                $TotalAmountDue = currency($TotalAmountDue);
+                $RemainingAmount = currency($RemainingAmount);
+            }
+
             $loan_item = array(
                 'loanId' => $LoanId,
                 'loanName' => $LoanName,
-                'isActive' => $IsActive,
+                'isActive' => boolval($IsActive),
                 'monthlyAmountDue' => $MonthlyAmountDue,
                 'totalAmountDue' => $TotalAmountDue,
                 'remainingAmount' => $RemainingAmount,
+                'dateDue' => $DateDue,
+                'datePaid' => $DatePaid,
+                'isPaid' => boolval($IsPaid),
+                'isLate' => boolval($IsLate),
                 'companyId' => $CompanyId,
                 'companyName' => $CompanyName,
                 'userId' => $UserId,
