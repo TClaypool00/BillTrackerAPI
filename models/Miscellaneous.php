@@ -5,6 +5,8 @@ class Miscellaneous extends BaseClass {
     public $amount;
     public $date_added;
 
+    public static $not_has_access = 'You do not have access to this Miscellaneous';
+
     private $select_all = 'SELECT * FROM vwmiscellaneous';
 
     public function __construct($db)
@@ -111,13 +113,47 @@ class Miscellaneous extends BaseClass {
         }
 
         if (!is_null($this->amount)) {
-            if ($this->amount <= 0) {
-                $this->format_status();
-                $this->status .= 'Amount must be a positive number';
+            if (is_numeric($this->amount)) {
+                if ($this->amount <= 0) {
+                    $this->format_status();
+                    $this->status .= 'Amount must be a positive number';
+                } else {
+                    $this->amount = doubleval($this->amount);
+                }
             } else {
-                $this->amount = doubleval($this->amount);
+                $this->format_status();
+                $this->status .= 'Amount must be a number';
             }
         }
+    }
+
+    public function data_is_too_long() {
+        if (is_string($this->name) && strlen($this->name) > 255) {
+            $this->format_status();
+            $this->status .= 'Name' . $this->too_long;
+        } 
+    }
+
+    public function misc_params_null($start_date, $end_date) {
+        if (is_null($this->user_id) && is_null($this->company_id) && is_null($start_date) && is_null($end_date)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function user_has_miscellaneous() {
+        $this->query = 'SELECT EXISTS(SELECT m.MiscellaneousId FROM miscellaneous m INNER JOIN companies c ON m.CompanyId = c.CompanyId WHERE m.MiscellaneousId = ' . $this->miscellaneous_id . ' AND c.UserId = ' . $this->user_id . ') AS UserHasMiscellaneous';
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+        return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
+    public function miscellaneous_exists() {
+        $this->query = 'SELECT EXISTS(SELECT m.MiscellaneousId FROM miscellaneous m WHERE m.MiscellaneousId = ' . $this->miscellaneous_id . ') AS MiscellaneousExists;';
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+        return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
 
     private function clean_data() {

@@ -1,7 +1,9 @@
 <?php
 include '../../partail_files/get_all_header.php';
-include '../../partail_files/object_partial_files/new_miscellaneous.php';
 include '../../global_functions.php';
+include '../../partail_files/object_partial_files/new_miscellaneous.php';
+include '../../partail_files/jwt_partial.php';
+include '../../models/BooleanTypes.php';
 
 $start_date = null;
 $end_date = null;
@@ -30,33 +32,74 @@ if (get_isset('endDate')) {
     $end_date = null;
 }
 
-$result = $misc->get_all($start_date, $end_date);
+if (get_isset('showCurrency')) {
+    $misc->show_currency = set_get_variable('showCurrency');
+} else {
+    $misc->show_currency = false;
+}
 
-$num = $result->rowCount();
+$misc->validate_user_id(true);
+$misc->validate_company_id(true);
+$misc->validate_boolean(BooleanTypes::ShowCurrency, true);
 
-if ($num > 0) {
-    $misc_arr = array();
+if ($misc->status_is_empty()) {
+    if (!$decoded->isAdmin) {
+        if ($misc->misc_params_null($start_date, $end_date)) {
+            http_response_code(403);
+            echo custom_array(Miscellaneous::$all_params_null);
+            die();
+        }
 
-    while($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        extract($row);
-
-        $misc_item = array(
-            'miscellaneousId' => $MiscellaneousId,
-            'name' => $Name,
-            'amount' => $Amount,
-            'companyId' => $CompanyId,
-            'companyName' => $CompanyName,
-            'userId' => $UserId,
-            'firstName' => $FirstName,
-            'lastName' => $LastName
-        );
-
-        array_push($misc_arr, $misc_item);
+        if (!is_null($misc->user_id)) {
+            if ($decoded->userId !== $misc->user_id) {
+                http_response_code(403);
+                echo custom_array(Miscellaneous::$not_auth);
+                die();
+            } else {
+                if (!is_null($misc->company_id) && !$misc->user_has_company()) {
+                    http_response_code(403);
+                    echo custom_array(Miscellaneous::$does_not_have_company);
+                    die();
+                }
+            }
+        } else {
+            http_response_code(403);
+            echo custom_array(Miscellaneous::$user_id_null);
+        }
     }
 
-    http_response_code(200);
-    echo json_encode($misc_arr);
-} else {
-    http_response_code(404);
-    echo custom_array('No miscellaneous found');
+    $result = $misc->get_all($start_date, $end_date);
+
+    $num = $result->rowCount();
+
+    if ($num > 0) {
+        $misc_arr = array();
+
+        while($row = $result->fetch(PDO::FETCH_ASSOC)) {
+            extract($row);
+
+            if ($misc->show_currency) {
+                $Amount = currency($Amount);
+            }
+
+            $misc_item = array(
+                'miscellaneousId' => $MiscellaneousId,
+                'name' => $Name,
+                'amount' => $Amount,
+                'companyId' => $CompanyId,
+                'companyName' => $CompanyName,
+                'userId' => $UserId,
+                'firstName' => $FirstName,
+                'lastName' => $LastName
+            );
+
+            array_push($misc_arr, $misc_item);
+        }
+
+        http_response_code(200);
+        echo json_encode($misc_arr);
+    } else {
+        http_response_code(404);
+        echo custom_array('No miscellaneous found');
+    }
 }

@@ -11,6 +11,7 @@ $misc->company_id = $data->companyId ?? null;
 $misc->data_is_null();
 $misc->validate_data();
 $misc->validate_company_id();
+$misc->data_is_too_long();
 
 if ($misc->status_is_empty()) {
     $misc->user_id = $decoded->userId;
