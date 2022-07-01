@@ -89,6 +89,37 @@ class Miscellaneous extends BaseClass {
         return $this->stmt;
     }
 
+    public function data_is_null() {
+        if (is_null($this->name)) {
+            $this->status = 'Name' . $this->cannot_be_null;
+        }
+
+        if (is_null($this->amount)) {
+            $this->format_status();
+            $this->status .= 'Amount' . $this->cannot_be_null;
+        }
+    }
+
+    public function validate_data() {
+        if (!is_null($this->name)) {
+            if ($this->name === '') {
+                $this->format_status();
+                $this->status .= 'Name cannot be an empty string';
+            } else {
+                $this->name = strval($this->name);
+            }
+        }
+
+        if (!is_null($this->amount)) {
+            if ($this->amount <= 0) {
+                $this->format_status();
+                $this->status .= 'Amount must be a positive number';
+            } else {
+                $this->amount = doubleval($this->amount);
+            }
+        }
+    }
+
     private function clean_data() {
         $this->name = htmlspecialchars(strip_tags($this->name));
         $this->amount = htmlspecialchars(strip_tags($this->amount));
