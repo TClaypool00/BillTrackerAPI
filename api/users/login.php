@@ -9,35 +9,44 @@ use \Firebase\JWT\JWT;
 $user->email = $data->email ?? null;
 $password = $data->password ?? null;
 
-$user->get(true, true);
+$user->login_empty();
+$user->login_to_correct_format();
+$user->login_too_long();
 
-if ($user->user_first_name != null) {
-    if ($user->verify_password($password)) {
+if ($user->status_is_empty()) {
+    $user->get(true, true);
 
-        $secret = new Secret($user->user_id, $user->isAdmin);
+    if ($user->user_first_name != null) {
+        if ($user->verify_password($password)) {
 
-        $jwt= JWT::encode($secret->token, Secret::$key, Secret::$alg);
+            $secret = new Secret($user->user_id, $user->isAdmin);
 
-        $user_arr = array(
-            'userId' => $user->user_id,
-            'firstName' => $user->user_first_name,
-            'lastName' => $user->user_last_name,
-            'email' => $user->email,
-            'phoneNum' => $user->phone_num,
-            'isAdmin' => $user->isAdmin,
-            'token' => $jwt
-        );
+            $jwt= JWT::encode($secret->token, Secret::$key, Secret::$alg);
 
-        http_response_code(200);
-        echo json_encode(array(
-            'user' => $user_arr
-        ));
+            $user_arr = array(
+                'userId' => $user->user_id,
+                'firstName' => $user->user_first_name,
+                'lastName' => $user->user_last_name,
+                'email' => $user->email,
+                'phoneNum' => $user->phone_num,
+                'isAdmin' => $user->isAdmin,
+                'token' => $jwt
+            );
 
+            http_response_code(200);
+            echo json_encode(array(
+                'user' => $user_arr
+            ));
+
+        } else {
+            http_response_code(400);
+            echo custom_array('Password is not correct');
+        }
     } else {
-        http_response_code(400);
-        echo custom_array('Password is not correct');
+        http_response_code(404);
+        echo custom_array('Incorrect email address');
     }
 } else {
-    http_response_code(404);
-    echo custom_array('Incorrect email address');
+    http_response_code(400);
+    echo custom_array($user->status);
 }
