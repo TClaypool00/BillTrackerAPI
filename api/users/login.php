@@ -30,6 +30,10 @@ if ($user->status_is_empty()) {
                 'email' => $user->email,
                 'phoneNum' => $user->phone_num,
                 'isAdmin' => $user->isAdmin,
+                'profileId' => $user->profile_id,
+                'monthlySalary' => $user->monthly_salary,
+                'savings' => $user->savings,
+                'budget' => $user->budget,
                 'token' => $jwt
             );
 

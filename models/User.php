@@ -12,6 +12,10 @@ class User extends BaseClass {
     public $isAdmin;
     public $phone_num;
     public $token;
+    public $profile_id;
+    public $savings;
+    public $budget;
+    public $monthly_salary;
 
     public function __construct($db)
     {
@@ -61,6 +65,10 @@ class User extends BaseClass {
         $this->isAdmin = $this->row_value('IsAdmin');
         $this->isAdmin = $this->convert_to_boolean($this->isAdmin);
         $this->phone_num = $this->row_value('PhoneNumber');
+        $this->profile_id = $this->row_value('ProfileId');
+        $this->monthly_salary = $this->row_value('MonthlySalary');
+        $this->budget = $this->row_value('Budget');
+        $this->savings = $this->row_value('Savings');
 
         if ($show_password) {
             $this->password = $this->row_value('Password');
