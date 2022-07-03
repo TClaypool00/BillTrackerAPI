@@ -14,33 +14,14 @@ $company->validate_user_id();
 
 if ($company->status_is_empty()) {
     if ($decoded->userId === $company->user_id) {
-        $result = $company->drop_down();
+        $cmopany_arr = $company->drop_down();
 
-        $num = $result->rowCount();
-
-        if ($num > 0) {
-            $company_arr = array();
-            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-                extract($row);
-        
-                $company_item = array(
-                    'companyId' => $CompanyId,
-                    'companyName' => $CompanyName
-                );
-        
-                array_push($company_arr, $company_item);
-            }
+        if (count($cmopany_arr) > 1) {
             http_response_code(200);
-            echo json_encode($company_arr);
+            echo json_encode($cmopany_arr);
         } else {
             http_response_code(404);
-            echo custom_array('No companines found');
+            echo custom_array('No companies found');
         }
-    } else {
-        http_response_code(403);
-        echo custom_array(Company::$not_auth);
     }
-} else {
-    http_response_code(400);
-    echo custom_array($company->status);
 }

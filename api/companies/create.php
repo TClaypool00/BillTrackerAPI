@@ -5,11 +5,10 @@ include '../../partail_files/object_partial_files/new_company.php';
 include '../../partail_files/jwt_partial.php';
 
 $company->company_name = $data->companyName ?? null;
-$company->type_id = $data->typeId ?? null;
 
-$company->data_is_null(true);
-$company->format_data(true);
-$company->validate_data(true);
+$company->data_is_null();
+$company->format_data();
+$company->validate_data();
 
 try {
     if ($company->status === '') {

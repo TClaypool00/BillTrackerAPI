@@ -13,7 +13,7 @@ class Company extends BaseClass {
     public function create() {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL insCompany('{$this->company_name}', '{$this->user_id}', '{$this->type_id}');");
+        $this->stmt = $this->prepare_stmt("CALL insCompany('{$this->company_name}', '{$this->user_id}');");
 
         return $this->stmt_executed();
     }
@@ -65,48 +65,21 @@ class Company extends BaseClass {
         return $this->stmt;
     }
 
-    public function drop_down() {
-        $this->stmt = $this->prepare_stmt("CALL selCompanyDropDown('{$this->user_id}');");
-
-        $this->execute();
-
-        return $this->stmt;
-    }
-
-    public function data_is_null($include_type) {
+    public function data_is_null() {
         if ($this->company_name === null || $this->company_name === '') {
             $this->format_status();
             $this->status .= 'Company name' . $this->cannot_be_null;
         }
-
-        if ($include_type && $this->type_id === null) {
-            $this->format_status();
-            $this->status .= 'Type Id' . $this->cannot_be_null;
-        }
     }
 
-    public function format_data($include_type) {
+    public function format_data() {
         $this->company_name = strval($this->company_name);
-
-        if ($this->type_id !== null  && $include_type) {
-            if (is_numeric($this->type_id)) {
-                $this->type_id = intval($this->type_id);
-            } else {
-                $this->format_status();
-                $this->status .= 'Type Id needs to be a number';
-            }
-        }
     }
 
-    public function validate_data($include_type) {
+    public function validate_data() {
         if (strlen($this->company_name) > 255) {
             $this->format_status();
             $this->status .= 'Company name' . $this->too_long;
-        }
-
-        if ($this->type_id <= 0 && is_numeric($this->type_id) && $include_type) {
-            $this->format_status();
-            $this->status .= 'Type Id needs to be a positive number';
         }
     }
 

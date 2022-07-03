@@ -34,6 +34,35 @@ class BaseClass extends ValidateClass {
         return false;
     }
 
+    public function drop_down() {
+        $this->stmt = $this->prepare_stmt("CALL selCompanyDropDown('{$this->user_id}');");
+
+        $this->execute();
+
+        $result = $this->stmt;
+
+        $num = $result->rowCount();
+        $company_arr = array();
+        $default_value = array('companyId' => '', 'companyName' => 'Please select a company');
+
+        array_push($company_arr, $default_value);
+
+        if ($num > 0) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+                extract($row);
+        
+                $company_item = array(
+                    'companyId' => $CompanyId,
+                    'companyName' => $CompanyName
+                );
+        
+                array_push($company_arr, $company_item);
+            }
+        }
+
+        return $company_arr;
+    }
+
     protected function stmt_executed() {
         if ($this->stmt->execute()) {
             return true;
