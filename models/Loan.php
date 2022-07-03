@@ -10,6 +10,8 @@ class Loan extends BaseClass
 
     private $select_all = 'SELECT * FROM vwloans';
 
+    public static $not_access_to_loan = 'You do have access to this loan';
+
     public function __construct($db)
     {
         $this->conn = $db;

@@ -8,14 +8,14 @@ class BaseClass extends ValidateClass {
     protected $query;
     protected $time_stamp;
 
-    public function pay($amount, $id, $type_id) {
-        $this->stmt = $this->prepare_stmt("CALL updPayExpense('{$id}', '{$amount}', '{$type_id}');");
+    public function pay($id, $type_id) {
+        $this->stmt = $this->prepare_stmt("CALL updPayExpense('{$id}', '{$type_id}');");
 
         return $this->stmt_executed();
     }
 
-    public function is_paid($id) {
-        $this->stmt = $this->prepare_stmt('SELECT IsPaid from paymenthistory where ExpenseId = ' . $id);
+    public function is_paid($id, $type_id) {
+        $this->stmt = $this->prepare_stmt('SELECT IsPaid from paymenthistory where ExpenseId = ' . $id . ' AND TypeId = ' . $type_id . ' AND (MONTH(DateDue) = MONTH(NOW()) AND YEAR(DateDue) = YEAR(NOW()))');
         $this->execute();
         return $this->convert_to_boolean($this->stmt->fetchColumn());
     }
