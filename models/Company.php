@@ -65,6 +65,14 @@ class Company extends BaseClass {
         return $this->stmt;
     }
 
+    public function drop_down() {
+        $this->stmt = $this->prepare_stmt("CALL selCompanyDropDown('{$this->user_id}');");
+
+        $this->execute();
+
+        return $this->stmt;
+    }
+
     public function data_is_null($include_type) {
         if ($this->company_name === null || $this->company_name === '') {
             $this->format_status();
