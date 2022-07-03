@@ -9,7 +9,7 @@ use \Firebase\JWT\JWT;
 $user->email = $data->email ?? null;
 $password = $data->password ?? null;
 
-$user->login_empty();
+$user->login_empty($password);
 $user->login_to_correct_format();
 $user->login_too_long();
 

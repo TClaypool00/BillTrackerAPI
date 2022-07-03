@@ -92,9 +92,14 @@ class User extends BaseClass {
         return false;
     }
 
-    public function login_to_correct_format() {
+    public function login_to_correct_format($password = null) {
         $this->email = strval($this->email);
-        $this->password = strval($this->password);
+        
+        if (is_null($password)) {
+            $password = strval($password);
+        } else {
+            $this->password = strval($this->password);
+        }
     }
 
     public function data_to_correct_format() {
@@ -130,13 +135,13 @@ class User extends BaseClass {
         }
     }
 
-    public function login_empty() {
-        if (strlen($this->email) === 0 || ($this->phone_num === null)) {
+    public function login_empty($password = null) {
+        if ($this->email === '' || ($this->email === null)) {
             $this->format_status();
             $this->status .= 'Email address' . $this->cannot_empty;
         }
 
-        if ($this->password === '' || $this->password === null) {
+        if (($password === '' || $password === null) && ($this->password === '' || $this->password === null)) {
             $this->format_status();
             $this->status .= 'Password' . $this->cannot_empty;
         }
