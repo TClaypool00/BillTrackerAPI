@@ -78,8 +78,12 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insUser` (IN `first_name` VARCHAR(2
     VALUES (user_id);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `selCompanyDropDown` (IN `type_id` INT(11), IN `user_id` INT(11))  SELECT c.CompanyId, c.CompanyName FROM companies c
-WHERE c.TypeId = type_id AND c.UserId = user_id$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `selCompanyDropDown` (IN `user_id` INT(11))  SELECT c.CompanyId, c.CompanyName FROM companies c
+WHERE c.UserId = user_id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateProfile` (IN `monthly_salary` DOUBLE(11,2), IN `budget` DOUBLE(11,2), IN `saving` DOUBLE(11,2), IN `user_id` INT(11))  UPDATE userprofile
+SET MonthlySalary = monthly_salary, Budget = budget, Savings = saving
+WHERE UserId = user_id$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_recurring` BOOLEAN, IN `is_active` BOOLEAN, IN `end_date` DATE, IN `bill_id` INT(11))  UPDATE bills
 SET BillName = bill_name, AmountDue = amount_due, IsRecurring = is_recurring, IsActive = is_active, EndDate = end_date
@@ -97,9 +101,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updMisc` (IN `name` VARCHAR(255), I
 SET Name = name, Amount = amount, CompanyId = company_id
 WHERE MiscellaneousId = id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updPayExpense` (IN `expense_id` INT(11), IN `amount` DECIMAL(11,2), IN `type_id` INT(11))  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updPayExpense` (IN `expense_id` INT(11), IN `type_id` INT(11))  BEGIN
     UPDATE paymenthistory
-    SET IsPaid = TRUE, DatePaid = NOW(), Amount = amount
+    SET IsPaid = TRUE, DatePaid = NOW()
     WHERE ExpenseId = expense_id AND TypeId = type_id
     AND MONTH(DateDue) = MONTH(NOW());
 
@@ -264,6 +268,10 @@ CREATE TABLE `vwusers` (
 ,`PhoneNumber` varchar(10)
 ,`Password` varchar(255)
 ,`IsAdmin` tinyint(1)
+,`ProfileId` int(11)
+,`MonthlySalary` decimal(11,2)
+,`Budget` decimal(11,2)
+,`Savings` decimal(11,2)
 );
 CREATE TABLE `vwsubscriptions` (
 `SubscriptionId` int(11)
@@ -294,7 +302,7 @@ DROP TABLE IF EXISTS `vwmiscellaneous`;
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwmiscellaneous`  AS SELECT `m`.`MiscellaneousId` AS `MiscellaneousId`, `m`.`Name` AS `Name`, `m`.`Amount` AS `Amount`, `m`.`DateAdded` AS `DateAdded`, `m`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `u`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`miscellaneous` `m` join `companies` `c` on(`c`.`CompanyId` = `m`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) ;
 DROP TABLE IF EXISTS `vwusers`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwusers`  AS SELECT `users`.`UserId` AS `UserId`, `users`.`FirstName` AS `FirstName`, `users`.`LastName` AS `LastName`, `users`.`Email` AS `Email`, `users`.`PhoneNumber` AS `PhoneNumber`, `users`.`Password` AS `Password`, `users`.`IsAdmin` AS `IsAdmin` FROM `users` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwusers`  AS SELECT `u`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName`, `u`.`Email` AS `Email`, `u`.`PhoneNumber` AS `PhoneNumber`, `u`.`Password` AS `Password`, `u`.`IsAdmin` AS `IsAdmin`, `p`.`ProfileId` AS `ProfileId`, `p`.`MonthlySalary` AS `MonthlySalary`, `p`.`Budget` AS `Budget`, `p`.`Savings` AS `Savings` FROM (`users` `u` join `userprofile` `p` on(`p`.`UserId` = `u`.`UserId`)) ;
 DROP TABLE IF EXISTS `vwsubscriptions`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwsubscriptions`  AS SELECT `s`.`SubscriptionId` AS `SubscriptionId`, `s`.`Name` AS `Name`, `s`.`AmountDue` AS `AmountDue`, `s`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `s`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`subscriptions` `s` join `companies` `c` on(`c`.`CompanyId` = `s`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `s`.`SubscriptionId` and `h`.`TypeId` = 3 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp()))) ;
