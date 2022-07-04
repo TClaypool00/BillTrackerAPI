@@ -7,7 +7,7 @@ class Subscription extends BaseClass
 
     public static $not_access = 'You do have access to this Subscription';
 
-    private $select_all = 'SELECT * FROM wvsubscriptions';
+    private $select_all = 'SELECT * FROM vwsubscriptions';
 
     public function __construct($db)
     {
