@@ -17,12 +17,14 @@ class ValidateClass {
     public $is_late;
     public $is_paid;
     public $show_currency;
+    public $is_edit;
 
     public $status = '';
     public static $all_params_null = 'Only admins can have all parameters be null';
     public static $not_auth = 'Not authorized';
     public static $does_not_have_company = 'You do not have access to this company';
     public static $user_id_null = 'User Id cannot be null';
+    public static $is_edit_show_currency = 'Both is edit and show currency cannot both be true';
     
     protected $cannot_empty = ' cannot not be empty';
     protected $too_long = ' can only be a maxiumn of 255 characters';
@@ -74,6 +76,10 @@ class ValidateClass {
                 $value = $this->show_currency;
                 $value_name ='Show currency';
                 break;
+            case BooleanTypes::IsEdit:
+                $value = $this->is_edit;
+                $value_name = 'IsEdit';
+                break;
             default:
                 throw new TypeError($this->not_an_option);
         }
@@ -110,6 +116,9 @@ class ValidateClass {
                 break;
             case BooleanTypes::ShowCurrency:
                 $this->show_currency = $value;
+                break;
+            case BooleanTypes::IsEdit:
+                $this->is_edit = $value;
                 break;
             default:
             throw new TypeError($this->not_an_option);
@@ -194,7 +203,7 @@ class ValidateClass {
             $this->date_due = $this->convert_string_to_date();
             if (!$can_be_in_past && ($this->date_due < strtotime(date('Y-m-d')))) {
                 $this->format_status();
-                $this->status .= 'Due Dae cannot be in the past';
+                $this->status .= 'Date due cannot be in the past';
             }
         } else {
             $this->format_status();
