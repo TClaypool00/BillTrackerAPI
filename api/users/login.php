@@ -25,15 +25,8 @@ if ($user->status_is_empty()) {
 
             $user_arr = array(
                 'userId' => $user->user_id,
-                'firstName' => $user->user_first_name,
-                'lastName' => $user->user_last_name,
-                'email' => $user->email,
-                'phoneNum' => $user->phone_num,
+                'firstName' => $user->user_first_name,                
                 'isAdmin' => $user->isAdmin,
-                'profileId' => $user->profile_id,
-                'monthlySalary' => $user->monthly_salary,
-                'savings' => $user->savings,
-                'budget' => $user->budget,
                 'token' => $jwt
             );
 
