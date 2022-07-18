@@ -17,7 +17,7 @@ class All extends BaseClass {
         $query = '';
         $this->get_bills = $this->select_all . 'vwbills' . $this->where . $this->user_id;
         $this->get_loans = $this->select_all . 'vwloans' . $this->where . $this->user_id;
-        $this->get_subs = $this->select_all . 'wvsubscriptions' . $this->where . $this->user_id;
+        $this->get_subs = $this->select_all . 'vwsubscriptions' . $this->where . $this->user_id;
         $this->get_misc = $this->select_all . 'vwmiscellaneous' . $this->where . $this->user_id . $this->date_where;
 
 
