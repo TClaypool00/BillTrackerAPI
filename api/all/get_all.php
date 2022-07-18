@@ -62,9 +62,11 @@ if ($all->status_is_empty()) {
     
                 $item_arr['companyId'] = $CompanyId;
                 $item_arr['companyName'] = $CompanyName;
-                $item_arr['userId'] = $UserId;
-                $item_arr['firstName'] = $FirstName;
-                $item_arr['lastName'] = $LastName;
+                if ($all->user_id !== $decoded->userId) {
+                    $item_arr['userId'] = $UserId;
+                    $item_arr['firstName'] = $FirstName;
+                    $item_arr['lastName'] = $LastName;
+                }
 
                 array_push($arr, $item_arr);
             }
