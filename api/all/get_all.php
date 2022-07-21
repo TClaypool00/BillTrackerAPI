@@ -34,7 +34,7 @@ if ($all->status_is_empty()) {
                 if ($x === 0) {
                     $item_arr['billId'] = $BillId;
                     $item_arr['billName'] = $BillName;
-                    $item_arr['AmountDue'] = currency($AmountDue);
+                    $item_arr['amountDue'] = currency($AmountDue);
                 } else if ($x === 1) {
                     $item_arr['loanId'] = $LoanId;
                     $item_arr['loanName'] = $LoanName;
