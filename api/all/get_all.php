@@ -70,9 +70,9 @@ if ($all->status_is_empty()) {
 
                 array_push($arr, $item_arr);
             }
-            array_push($all_arr, $arr);
-            $arr = array();
         }
+        array_push($all_arr, $arr);
+        $arr = array();
     }
 
     http_response_code(200);
