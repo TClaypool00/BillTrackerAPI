@@ -21,12 +21,6 @@ if (get_isset('showCurrency')) {
     $bill->show_currency = false;
 }
 
-if (get_isset('isEdit')) {
-    $bill->is_edit = set_get_variable('isEdit');
-} else {
-    $bill->is_edit = false;
-}
-
 if (!$decoded->isAdmin && !$bill->user_has_bill()) {
     http_response_code(403);
     echo custom_array($bill->not_access_bill);
@@ -45,14 +39,11 @@ if ($bill->status_is_empty()) {
 
     $bill->get();
 
-    if ($bill->show_currency) {
-        $bill->amount_due = currency($bill->amount_due);
-    }
-
     $bill_arr = array(
         'billId' => $bill->bill_id,
         'billName' => $bill->bill_name,
         'isActive' => boolval($bill->is_active),
+        'amountDue' => $bill->amount_due,
         'dateDue' => $bill->date_due,
         'datePaid' => $bill->date_paid,
         'isPaid' => boolval($bill->is_paid),
@@ -60,12 +51,8 @@ if ($bill->status_is_empty()) {
     );
 
     $bill_arr['companyId'] = $bill->company_id;
-
-    if ($bill->is_edit) {
-        $bill_arr['company'] = $bill->drop_down();
-    } else {
-        $bill_arr['companyName'] = $bill->company_name;
-    }
+    $bill_arr['company'] = $bill->drop_down();
+    $bill_arr['companyName'] = $bill->company_name;
 
     if ($bill->user_id !== $decoded->userId) {
         $bill_arr['userId'] = $bill->user_id;
