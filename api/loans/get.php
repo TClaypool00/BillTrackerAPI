@@ -66,7 +66,7 @@ if ($loan->status_is_empty()) {
     );
 
     if ($loan->is_edit) {
-        $loan_arr['company'] = $loan->drop_down();
+        $loan_arr['companies'] = $loan->drop_down();
     } else {
         $loan_arr['companyName'] = $loan->company_name;
     }
