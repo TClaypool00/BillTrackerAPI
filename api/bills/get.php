@@ -51,7 +51,7 @@ if ($bill->status_is_empty()) {
     );
 
     $bill_arr['companyId'] = $bill->company_id;
-    $bill_arr['company'] = $bill->drop_down();
+    $bill_arr['companies'] = $bill->drop_down();
     $bill_arr['companyName'] = $bill->company_name;
 
     if ($bill->user_id !== $decoded->userId) {

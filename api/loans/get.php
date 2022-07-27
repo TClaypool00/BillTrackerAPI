@@ -65,11 +65,8 @@ if ($loan->status_is_empty()) {
         'companyId' => $loan->company_id
     );
 
-    if ($loan->is_edit) {
-        $loan_arr['companies'] = $loan->drop_down();
-    } else {
-        $loan_arr['companyName'] = $loan->company_name;
-    }
+    $loan_arr['companyName'] = $loan->company_name;
+    $loan_arr['companies'] = $loan->drop_down();
 
     if ($decoded->userId !== $loan->user_id) {
         $loan_arr['userId'] = $loan->user_id;

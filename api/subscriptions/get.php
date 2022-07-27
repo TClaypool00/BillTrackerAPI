@@ -61,11 +61,8 @@ if ($sub->status_is_empty()) {
         'companyId' => $sub->company_id
     );
 
-    if ($sub->is_edit) {
-        $sub_arr['companyName'] = $sub->company_name;
-    } else {
-        $sub_arr['companies'] = $sub->drop_down();
-    }
+    $sub_arr['companyName'] = $sub->company_name;
+    $sub_arr['companies'] = $sub->drop_down();
 
     if ($sub->user_id !== $decoded->userId) {
         $sub_arr['userId'] = $sub->user_id;
