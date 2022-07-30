@@ -76,7 +76,7 @@ class Miscellaneous extends BaseClass {
             $this->additional_query .= 'DateAdded = ';
 
             if ($start_date != null)  {
-                $this->additional_query .= $end_date;
+                $this->additional_query .= $start_date;
             }
 
             if ($end_date != null) {
