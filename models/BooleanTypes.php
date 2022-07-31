@@ -4,4 +4,5 @@ enum BooleanTypes {
     case IsLate;
     case ShowCurrency;
     case IsEdit;
+    case IsEdited;
 }

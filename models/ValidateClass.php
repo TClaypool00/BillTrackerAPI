@@ -18,6 +18,7 @@ class ValidateClass {
     public $is_paid;
     public $show_currency;
     public $is_edit;
+    public $is_edited;
 
     public $status = '';
     public static $all_params_null = 'Only admins can have all parameters be null';
@@ -80,6 +81,10 @@ class ValidateClass {
                 $value = $this->is_edit;
                 $value_name = 'IsEdit';
                 break;
+            case BooleanTypes::IsEdited;
+                $value = $this->is_edited;
+                $value_name = 'IsEdited';
+                break;
             default:
                 throw new TypeError($this->not_an_option);
         }
@@ -119,6 +124,9 @@ class ValidateClass {
                 break;
             case BooleanTypes::IsEdit:
                 $this->is_edit = $value;
+                break;
+            case BooleanTypes::IsEdited:
+                $this->is_edited = $value;
                 break;
             default:
             throw new TypeError($this->not_an_option);

@@ -3,10 +3,11 @@ class Post extends BaseClass {
     public $post_id;
     public $post_body;
     public $date_posted;
-    public $is_edited;
 
     private $post_body_string = 'Post body';
     private $select_all = 'SELECT * FROM vwposts';
+
+    public static $post_does_not_exist = 'Post does not exist';
 
     public function __construct($db)
     {
@@ -16,22 +17,26 @@ class Post extends BaseClass {
     public function create() {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL insPost(`{$this->post_body}`, `{$this->user_id}`);");
+        $this->stmt = $this->prepare_stmt("CALL insPost('{$this->post_body}', '{$this->user_id}');");
+        $this->execute();
 
-        return $this->stmt_executed();
+        $this->fetch_data();
     }
 
     public function update() {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL updPost(`{$this->post_body}`, `{$this->post_id}`);");
+        $this->stmt = $this->prepare_stmt("CALL updPost('{$this->post_body}', '{$this->post_id}');");
 
-        return $this->stmt_executed();
+        $this->execute();
+
+        $this->fetch_data();
     }
 
     public function get() {
-        $this->query = $this->select_all . ' WHERE PostId = ' . $this->post_id . $this->limit;
+        $this->query = $this->select_all . ' WHERE PostId = ' . $this->post_id;
         $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
         $this->row = $this->stmt->fetch(PDO::FETCH_ASSOC);
 
         $this->post_id = $this->row_value('PostId');
@@ -80,25 +85,25 @@ class Post extends BaseClass {
         return $this->stmt;
     }
 
-    public function post_array($message = null, $user_info = false) {
-        $post_arr = json_encode(array(
+    public function post_array($message = '', $user_info = true) {
+        $post_arr = array(
             'PostId' => $this->post_id,
             'PostBody' => $this->post_body,
             'DatePosted' => $this->date_posted,
-            'isEdited' => $this->is_edited
-        ));
+            'isEdited' => boolval($this->is_edited)
+        );
 
-        if ($user_info) {
+        if (!$user_info) {
             $post_arr['UserId'] = $this->user_id;
             $post_arr['FirstName'] = $this->user_first_name;
             $post_arr['LastName'] = $this->user_last_name;
         }
 
-        if ($message !== null) {
+        if ($message !== '') {
             $post_arr['message'] = $message;
         }        
 
-        return $post_arr;
+        return json_encode($post_arr);
     }
 
     public function post_exists() {
@@ -109,7 +114,7 @@ class Post extends BaseClass {
     }
 
     public function user_has_post() {
-        $this->query = 'SELECT EXISTS(SELECT p.PostId FROM posts p WHERE p.PostId = ' . $this->post_id . 'AND p.UserId = ' . $this->user_id . ' ) AS UserHasPost;';
+        $this->query = 'SELECT EXISTS(SELECT p.PostId FROM posts p WHERE p.PostId = ' . $this->post_id . ' AND p.UserId = ' . $this->user_id . ' ) AS UserHasPost;';
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
         return boolval($this->stmt->fetchColumn());
@@ -125,7 +130,7 @@ class Post extends BaseClass {
 
     public function validate_data() {
         if (!is_null($this->post_body)) {
-            if ($this->post_body) {
+            if ($this->post_body === '') {
                 $this->format_status();
                 $this->status .= $this->post_body_string . $this->cannot_empty;
             }
@@ -139,5 +144,16 @@ class Post extends BaseClass {
 
     private function clean_data() {
         $this->post_body = htmlspecialchars(strip_tags($this->post_body));
+    }
+
+    private function fetch_data() {
+        $this->row = $this->stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!is_numeric($this->post_id)) {
+            $this->post_id = $this->row_value('PostId');
+        }
+
+        $this->date_posted = $this->row_value('DatePosted');
+        $this->is_edited = boolval($this->row_value('IsEdited'));
     }
 }
