@@ -4,10 +4,10 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_post.php';
 include '../../partail_files/jwt_partial.php';
 
-$post->post_id = set_id();
-$post->post_body = $data->postBody ?? null;
-
 try{
+    $post->post_id = set_id();
+    $post->post_body = $data->postBody ?? null;
+
     if ($post->post_exists()) {
         $post->user_id = $decoded->userId;
         if (!$decoded->isAdmin && !$post->user_has_post()) {

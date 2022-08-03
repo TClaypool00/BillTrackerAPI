@@ -4,13 +4,12 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_post.php';
 include '../../partail_files/jwt_partial.php';
 
-$post->post_body = $data->postBody ?? null;
-
-$post->data_is_null();
-$post->validate_data();
-
-
 try{
+    $post->post_body = $data->postBody ?? null;
+
+    $post->data_is_null();
+    $post->validate_data();
+
     if ($post->status_is_empty()) {
         $post->user_id = $decoded->userId;
         $post->create();

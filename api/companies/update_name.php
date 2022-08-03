@@ -4,14 +4,14 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_company.php';
 include '../../partail_files/jwt_partial.php';
 
-$company->company_id = set_id();
-$company->company_name = $data->companyName ?? null;
-
-$company->is_date_null(false);
-$company->format_data(false);
-$company->validate_data(false);
-
 try {
+    $company->company_id = set_id();
+    $company->company_name = $data->companyName ?? null;
+
+    $company->is_date_null();
+    $company->format_data();
+    $company->validate_data();
+
     if ($company->status === '') {
         $company->user_id = $decoded->userId;
         if ($company->user_has_company()) {
