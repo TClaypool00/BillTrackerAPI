@@ -6,6 +6,7 @@ class Bill extends BaseClass
     public $amount_due;
     public $amount_due_curr;
     public $not_access_bill = 'You do have have access to this bill';
+    public $bill_not_exists = 'Bill does not exists';
 
     private $select_all = 'SELECT * FROM vwbills';
 
@@ -18,9 +19,15 @@ class Bill extends BaseClass
     {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL insBill('{$this->bill_name}', '{$this->amount_due}', '{$this->company_id}', '{$this->date_due}');");
+        $this->stmt = $this->prepare_stmt("CALL insBill('{$this->bill_name}', '{$this->amount_due}', '{$this->company_id}', '{$this->date_due}', '{$this->return_object}');");
 
-        return $this->stmt_executed();
+        $this->execute();
+
+        $this->row = $this->stmt->fetch(PDO::FETCH_ASSOC);
+
+        $this->bill_id = $this->row_value('BillId');
+
+        $this->additional_info();
     }
 
     public function update()
@@ -29,7 +36,11 @@ class Bill extends BaseClass
 
         $this->stmt = $this->prepare_stmt("CALL updBill('{$this->bill_name}', '{$this->amount_due}', '{$this->is_active}', '{$this->bill_id}');");
 
-        return $this->stmt_executed();
+        $this->execute();
+
+        $this->row = $this->stmt->fetch(PDO::FETCH_ASSOC);
+
+        $this->additional_info();
     }
 
     public function get()
@@ -139,6 +150,40 @@ class Bill extends BaseClass
         }
     }
 
+    public function bill_array($message = null, $same_user_id = true) {
+        $bill_arr = array(
+            'billId' => $this->bill_id,
+            'billName' => $this->bill_name,
+            'dateDue' => $this->date_due,
+            'companyId' => $this->company_id,
+            'companyName' => $this->company_name,
+        );
+
+        if ($this->include_drop_down) {
+            $bill_arr['companies'] = $this->drop_down();
+        }
+
+        if ($message !== null) {
+            $bill_arr['message'] = $message;
+        }
+
+        if (!$same_user_id) {
+            $bill_arr['userId'] = $this->user_id;
+            $bill_arr['firstName'] = $this->user_first_name;
+            $bill_arr['lastName'] = $this->user_last_name;
+        }
+
+        return json_encode($bill_arr);
+    }
+
+    public function bill_id_valid() {
+        if ($this->bill_id !== 0 && $this->bill_id !== null) {
+            return true;
+        }
+
+        return false;
+    }
+
     private function clean_data()
     {
         $this->bill_name = htmlspecialchars(strip_tags($this->bill_name));
@@ -147,5 +192,15 @@ class Bill extends BaseClass
         $this->company_id = htmlspecialchars(strip_tags($this->company_id));
         $this->is_active = htmlspecialchars(strip_tags($this->is_active));
         $this->date_due = htmlspecialchars(strip_tags($this->date_due));
+    }
+
+    private function additional_info() {
+        $this->user_id = $this->row_value('UserId');
+
+        if ($this->return_object) {            
+            $this->user_first_name = $this->row_value('FirstName');
+            $this->user_last_name = $this->row_value('LastName');
+            $this->company_name = $this->row_value('CompanyName');
+        }
     }
 }

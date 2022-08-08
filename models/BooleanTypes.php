@@ -5,4 +5,6 @@ enum BooleanTypes {
     case ShowCurrency;
     case IsEdit;
     case IsEdited;
+    case ReturnObject;
+    case IncludeDropDown;
 }

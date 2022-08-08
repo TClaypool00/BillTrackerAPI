@@ -21,9 +21,11 @@ class BaseClass extends ValidateClass {
     }
 
     public function user_has_company() {
-        $this->stmt = $this->prepare_stmt('SELECT EXISTS(SELECT * FROM companies WHERE CompanyId = ' . $this->company_id . ' AND UserId =' . $this->user_id . ') AS UserCompany');
+        $this->query = 'SELECT EXISTS(SELECT * FROM companies WHERE CompanyId = ' . $this->company_id . ' AND UserId = ' . $this->user_id . ') AS UserCompany';
+        $this->stmt = $this->prepare_stmt($this->query);
+        
         $this->execute();
-        return $this->convert_to_boolean($this->stmt->fetchColumn());
+        return boolval($this->stmt->fetchColumn());
     }
 
     public function all_params_null() {

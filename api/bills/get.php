@@ -11,7 +11,7 @@ try {
 
     if (!$bill->bill_exists()) {
         http_response_code(404);
-        echo custom_array('Bill with an id of ' . $bill->bill_id . ' was not found');
+        echo custom_array($bill->bill_not_exists);
         die();
     }
 

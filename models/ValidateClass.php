@@ -19,6 +19,8 @@ class ValidateClass {
     public $show_currency;
     public $is_edit;
     public $is_edited;
+    public $return_object;
+    public $include_drop_down;
 
     public $status = '';
     public static $all_params_null = 'Only admins can have all parameters be null';
@@ -81,9 +83,17 @@ class ValidateClass {
                 $value = $this->is_edit;
                 $value_name = 'IsEdit';
                 break;
-            case BooleanTypes::IsEdited;
+            case BooleanTypes::IsEdited:
                 $value = $this->is_edited;
                 $value_name = 'IsEdited';
+                break;
+            case BooleanTypes::ReturnObject:
+                $value = $this->return_object;
+                $value_name = 'ReturnObject';
+                break;
+            case BooleanTypes::IncludeDropDown:
+                $value = $this->include_drop_down;
+                $value_name = 'IncludeDropDown';
                 break;
             default:
                 throw new TypeError($this->not_an_option);
@@ -127,6 +137,12 @@ class ValidateClass {
                 break;
             case BooleanTypes::IsEdited:
                 $this->is_edited = $value;
+                break;
+            case BooleanTypes::ReturnObject:
+                $this->return_object = $value;
+                break;
+            case BooleanTypes::IncludeDropDown:
+                $this->include_drop_down = $value;
                 break;
             default:
             throw new TypeError($this->not_an_option);

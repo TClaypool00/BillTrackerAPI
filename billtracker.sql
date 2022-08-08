@@ -28,16 +28,28 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `delMisc` (IN `id` INT(11))   DELETE
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `delReply` (IN `reply_id` INT)   DELETE FROM replies WHERE ReplyId = reply_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(15,2), IN `company_id` INT(11), IN `date_due` DATE)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(15,2), IN `company_id` INT(11), IN `date_due` DATE, IN `return_object` BOOLEAN)   BEGIN
 	DECLARE billId INT;
-
-    INSERT INTO bills (BillName, AmountDue, CompanyId)
-    VALUES (bill_name, amount_due, company_id);
-
-    SET billId = LAST_INSERT_ID();
     
-    INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
-    VALUES (billId, 1, date_due);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+	
+    START TRANSACTION;
+    	INSERT INTO bills (BillName, AmountDue, CompanyId)
+    	VALUES (bill_name, amount_due, company_id);
+
+    	SET billId = LAST_INSERT_ID();
+    
+    	INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
+    	VALUES (billId, 1, date_due);
+        
+       	IF return_object THEN
+        	SELECT BillId, UserId, CompanyName, FirstName, LastName FROM vwbills WHERE BillId = billId;
+        END IF;
+        
+        COMMIT;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insComment` (IN `comment_body` VARCHAR(255), IN `post_id` INT, IN `user_id` INT)   INSERT INTO comments (CommentBody, PostId, UserId)
@@ -73,8 +85,25 @@ END$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insPaymentHistory` (IN `expense_id` INT(11), IN `type_id` INT(11))   INSERT INTO paymenthistory (ExpenseId, TypeId)
 VALUES (expense_id, type_id)$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insPost` (IN `post_body` VARCHAR(255), IN `user_id` INT)   INSERT INTO posts (PostBody, UserId)
-VALUES (post_body, user_id)$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insPost` (IN `post_body` VARCHAR(255), IN `user_id` INT)   BEGIN
+	DECLARE post_id INT;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+	START TRANSACTION;
+        INSERT INTO posts (PostBody, UserId)
+        VALUES (post_body, user_id);
+        
+        SET post_id = LAST_INSERT_ID();
+        
+        SELECT PostId, DatePosted, IsEdited FROM posts WHERE PostId = post_id;
+    
+    COMMIT;
+    
+    
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `company_id` INT)   BEGIN
 	DECLARE subId INT;
@@ -106,9 +135,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateProfile` (IN `monthly_salary`
 SET MonthlySalary = monthly_salary, Budget = budget, Savings = saving
 WHERE UserId = user_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_recurring` BOOLEAN, IN `is_active` BOOLEAN, IN `end_date` DATE, IN `bill_id` INT(11))   UPDATE bills
-SET BillName = bill_name, AmountDue = amount_due, IsRecurring = is_recurring, IsActive = is_active, EndDate = end_date
-WHERE BillId = bill_id$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_active` BOOLEAN, IN `bill_id` INT(11))   BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+
+	START TRANSACTION;
+	UPDATE bills
+	SET BillName = bill_name, AmountDue = amount_due, IsActive = is_active
+	WHERE BillId = bill_id;
+    
+    SELECT UserId, FirstName, LastName FROM vwbills WHERE BillId = bill_id;
+    
+    COMMIT;
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updComment` (IN `comment_body` VARCHAR(255), IN `comment_id` INT)   UPDATE comments
 SET CommentBody = comment_body, IsEdited = TRUE
@@ -139,9 +180,23 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updPayExpense` (IN `expense_id` INT
     END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updPost` (IN `post_body` VARCHAR(255), IN `post_id` INT)   UPDATE posts
-SET PostBody = post_body, IsEdit = TRUE
-WHERE PostId = post_id$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updPost` (IN `post_body` VARCHAR(255), IN `post_id` INT)   BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+	START TRANSACTION;
+        UPDATE posts
+		SET PostBody = post_body, IsEdited = TRUE
+		WHERE PostId = post_id;
+        
+        SELECT DatePosted, IsEdited FROM posts WHERE PostId = post_id;
+    
+    COMMIT;
+    
+    
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updReply` (IN `reply_body` VARCHAR(255), IN `reply_id` INT)   UPDATE replies
 SET ReplyBody = reply_body, IsEdited = TRUE
@@ -319,6 +374,15 @@ CREATE TABLE `vwmiscellaneous` (
 ,`FirstName` varchar(255)
 ,`LastName` varchar(255)
 );
+CREATE TABLE `vwposts` (
+`PostId` int(11)
+,`PostBody` varchar(255)
+,`DatePosted` datetime
+,`IsEdited` tinyint(1)
+,`UserId` int(11)
+,`FirstName` varchar(255)
+,`LastName` varchar(255)
+);
 CREATE TABLE `vwsubscriptions` (
 `SubscriptionId` int(11)
 ,`Name` varchar(255)
@@ -359,6 +423,9 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 DROP TABLE IF EXISTS `vwmiscellaneous`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwmiscellaneous`  AS SELECT `m`.`MiscellaneousId` AS `MiscellaneousId`, `m`.`Name` AS `Name`, `m`.`Amount` AS `Amount`, `m`.`DateAdded` AS `DateAdded`, `m`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `u`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM ((`miscellaneous` `m` join `companies` `c` on(`c`.`CompanyId` = `m`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`))  ;
+DROP TABLE IF EXISTS `vwposts`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwposts`  AS SELECT `p`.`PostId` AS `PostId`, `p`.`PostBody` AS `PostBody`, `p`.`DatePosted` AS `DatePosted`, `p`.`IsEdited` AS `IsEdited`, `p`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (`posts` `p` join `users` `u` on(`p`.`UserId` = `u`.`UserId`))  ;
 DROP TABLE IF EXISTS `vwsubscriptions`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwsubscriptions`  AS SELECT `s`.`SubscriptionId` AS `SubscriptionId`, `s`.`Name` AS `Name`, `s`.`AmountDue` AS `AmountDue`, `s`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `s`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`subscriptions` `s` join `companies` `c` on(`c`.`CompanyId` = `s`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `s`.`SubscriptionId` and `h`.`TypeId` = 3 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
