@@ -1,5 +1,7 @@
 <?php
 class BaseClass extends ValidateClass {
+    public $err_message = 'An error has occured. We apologize for the inconvience. We will fix it as soon as possible.';
+
     protected $conn;
     protected $stmt;
     protected $additional_query;
@@ -63,6 +65,14 @@ class BaseClass extends ValidateClass {
         }
 
         return $company_arr;
+    }
+
+    public function createError(Exception $e) {
+        $this->query = "CALL insError('{$e->getMessage()}', '{$e->getCode()}', '{$e->getLine()}', '{$e->getTraceAsString()}', '{$this->user_id}');";
+        echo $this->query;
+        $this->stmt = $this->prepare_stmt($this->query);
+
+        $this->execute();
     }
 
     protected function stmt_executed() {
