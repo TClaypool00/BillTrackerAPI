@@ -39,5 +39,6 @@ try {
     }
 } catch (Exception $e) {
     http_response_code(500);
-    echo custom_array($e->getMessage());
+    $profile->createError($e);
+    echo custom_array($profile->err_message);
 }

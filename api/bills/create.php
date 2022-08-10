@@ -11,6 +11,7 @@ try {
     $bill->amount_due = $data->amountDue ?? null;
     $bill->company_id = $data->companyId ?? null;
     $bill->date_due = $data->dueDate ?? null;
+    $bill->user_id = $decoded->userId;
 
     if (get_isset('returnObject')) {
         $bill->return_object = set_get_variable('returnObject');
@@ -33,8 +34,6 @@ try {
     $bill->validate_boolean(BooleanTypes::IncludeDropDown);
 
     if ($bill->status_is_empty()) {
-        $bill->user_id = $decoded->userId;
-
         if (!$bill->user_has_company()) {
             http_response_code(403);
             echo custom_array(Bill::$does_not_have_company);
@@ -60,5 +59,6 @@ try {
     }
 } catch (Exception $e) {
     http_response_code(500);
-    echo custom_array($e->getMessage());
+    $bill->createError($e);
+    echo custom_array($bill->err_message);
 }

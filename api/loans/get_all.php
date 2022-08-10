@@ -125,5 +125,6 @@ try {
     }
 } catch (Exception $e) {
     http_response_code(500);
-    echo custom_array($e->getMessage());
+    $loan->createError($e);
+    echo custom_array($loan->err_message);
 }

@@ -35,5 +35,6 @@ try {
     }
 } catch (Exception $e) {
     http_response_code(500);
-    echo custom_array($e->getMessage());
+    $company->createError($e);
+    echo custom_array($company->err_message);
 }

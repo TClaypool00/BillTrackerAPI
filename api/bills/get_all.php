@@ -120,5 +120,6 @@ try {
     }
 } catch (Exception $e) {
     http_response_code(500);
-    echo custom_array($e->getMessage());
+    $bill->createError($e);
+    echo custom_array($bill->err_message);
 }
