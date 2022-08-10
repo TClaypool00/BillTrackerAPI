@@ -28,6 +28,17 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `delMisc` (IN `id` INT(11))   DELETE
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `delReply` (IN `reply_id` INT)   DELETE FROM replies WHERE ReplyId = reply_id$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delSuggestion` (IN `suggestion_id` INT(11))   BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+   	DELETE FROM suggestions WHERE SuggestionId = suggestion_id;
+    COMMIT;
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(15,2), IN `company_id` INT(11), IN `date_due` DATE, IN `return_object` BOOLEAN)   BEGIN
 	DECLARE billId INT;
     
@@ -57,6 +68,32 @@ VALUES (comment_body, post_id, user_id)$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insCompany` (IN `company_name` VARCHAR(255), IN `user_id` INT(11))   INSERT INTO companies (CompanyName, UserId)
 VALUES (company_name, user_id)$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insError` (IN `error_message` VARCHAR(255), IN `err_code` INT(11), IN `err_line` INT(11), IN `stack_trace` TEXT, IN `user_id` INT(11))   BEGIN
+	DECLARE error_id INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	SELECT 'An error happend' as Message;
+    	ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+    	IF EXISTS(SELECT * FROM error WHERE ErrorCode = err_code) THEN
+        	SET error_id = (SELECT ErrorId FROM error WHERE ErrorCode = err_code);
+        ELSE        	
+        	INSERT INTO error(ErrorMessage, ErrorCode, ErrorLine, StackTrace)
+            VALUES (error_message, err_code, err_line, stack_trace);
+
+            SET error_id = LAST_INSERT_ID();        	
+        END IF;
+        
+        IF NOT (EXISTS(SELECT UserId FROM usererror WHERE ErrorId = error_id AND UserId = user_id)) THEN
+	        INSERT INTO usererror (ErrorId, UserId)
+        	VALUES (error_id, user_id);
+        END IF;
+        COMMIT;
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(255), IN `monthly_amt_due` DECIMAL(11,2), IN `total_loan_amt` DECIMAL(11,2), IN `remaining_amt` DECIMAL(11,2), IN `company_id` INT(11), IN `date_due` DATE)   BEGIN
 	DECLARE loanId INT;
@@ -117,6 +154,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN
     VALUES (subId, 3, due_date);
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insSuggestion` (IN `header` VARCHAR(255), IN `body` TEXT, IN `user_id` INT)   BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+   	START TRANSACTION;
+    INSERT INTO suggestions (SuggestHeader, SuggestBody, UserId)
+    VALUES (header, body, user_id);
+    
+    COMMIT;
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insUser` (IN `first_name` VARCHAR(255), IN `last_name` VARCHAR(255), IN `email` VARCHAR(255), IN `password` VARCHAR(255), IN `phone_num` VARCHAR(10))   BEGIN
 	DECLARE user_id INT;
 	INSERT INTO users (FirstName, LastName, Email, Password, IsAdmin, PhoneNumber)
@@ -130,6 +180,21 @@ END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `selCompanyDropDown` (IN `user_id` INT(11))   SELECT c.CompanyId, c.CompanyName FROM companies c
 WHERE c.UserId = user_id$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updApproveDenySuggestion` (IN `suggestion_id` INT, IN `approve_deny_id` INT, IN `deny_reason` TEXT, IN `user_id` INT)   BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+    
+    UPDATE suggestions
+    SET SuggestionOption = approve_deny_id, DenyReason = deny_reason, ApproveDenyBy = user_id
+    WHERE SuggestionId = suggestion_id;
+    
+    COMMIT;
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updateProfile` (IN `monthly_salary` DOUBLE(11,2), IN `budget` DOUBLE(11,2), IN `saving` DOUBLE(11,2), IN `user_id` INT(11))   UPDATE userprofile
 SET MonthlySalary = monthly_salary, Budget = budget, Savings = saving
@@ -212,6 +277,20 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updSub` (IN `name` VARCHAR(255), IN
     WHERE ExpenseId = id AND TypeId = 3 AND (MONTH(DateDue) = MONTH(NOW()) AND YEAR(DateDue) = YEAR(NOW()));
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updSuggestion` (IN `suggestion_id` INT, IN `header` INT, IN `body` INT)   BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+    UPDATE suggestions
+    SET SuggestHeader = header, SuggestBody = body
+    WHERE SuggestionId = suggestion_id;
+    
+    COMMIT;
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updUser` (IN `first_name` VARCHAR(255), IN `last_name` VARCHAR(255), IN `email` VARCHAR(255), IN `phone_num` VARCHAR(10), IN `user_id` INT(11))   UPDATE users
 SET FirstName = first_name, LastName = last_name, Email = email, PhoneNumber = phone_num
 WHERE UserId = user_id$$
@@ -240,6 +319,14 @@ CREATE TABLE `companies` (
   `CompanyName` varchar(255) NOT NULL,
   `UserId` int(11) NOT NULL,
   `IsActive` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `error` (
+  `ErrorId` int(11) NOT NULL,
+  `ErrorMessage` varchar(255) NOT NULL,
+  `ErrorCode` int(11) NOT NULL,
+  `ErrorLine` int(11) NOT NULL,
+  `StackTrace` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `loans` (
@@ -295,6 +382,17 @@ CREATE TABLE `subscriptions` (
   `CompanyId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `suggestions` (
+  `SuggestionId` int(11) NOT NULL,
+  `SuggestHeader` varchar(255) NOT NULL,
+  `SuggestBody` text NOT NULL,
+  `DateSubmitted` datetime NOT NULL DEFAULT current_timestamp(),
+  `UserId` int(11) NOT NULL,
+  `SuggestionOption` int(11) DEFAULT NULL,
+  `DenyReason` text DEFAULT NULL,
+  `ApproveDenyBy` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `types` (
   `TypeId` int(11) NOT NULL,
   `TypeName` varchar(255) NOT NULL
@@ -305,6 +403,11 @@ INSERT INTO `types` (`TypeId`, `TypeName`) VALUES
 (2, 'Loan'),
 (3, 'Subscriptions'),
 (4, 'Miscellaneous');
+
+CREATE TABLE `usererror` (
+  `UserId` int(11) NOT NULL,
+  `ErrorId` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `userprofile` (
   `ProfileId` int(11) NOT NULL,
@@ -398,6 +501,21 @@ CREATE TABLE `vwsubscriptions` (
 ,`FirstName` varchar(255)
 ,`LastName` varchar(255)
 );
+CREATE TABLE `vwsuggestions` (
+`SuggestionId` int(11)
+,`SuggestHeader` varchar(255)
+,`SuggestBody` text
+,`DateSubmitted` datetime
+,`AuthorId` int(11)
+,`AuthorFirstName` varchar(255)
+,`AuthorLastName` varchar(255)
+,`SuggestionOption` int(11)
+,`WaitingOption` varchar(255)
+,`DenyReason` text
+,`ApproveDenyBy` int(11)
+,`FirstName` varchar(255)
+,`LastName` varchar(255)
+);
 CREATE TABLE `vwusers` (
 `UserId` int(11)
 ,`FirstName` varchar(255)
@@ -411,6 +529,15 @@ CREATE TABLE `vwusers` (
 ,`Budget` decimal(11,2)
 ,`Savings` decimal(11,2)
 );
+
+CREATE TABLE `watingoptions` (
+  `OptionId` int(11) NOT NULL,
+  `WaitingOption` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `watingoptions` (`OptionId`, `WaitingOption`) VALUES
+(1, 'Approve'),
+(2, 'Deny');
 DROP TABLE IF EXISTS `vwbills`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwbills`  AS SELECT `b`.`BillId` AS `BillId`, `b`.`BillName` AS `BillName`, `b`.`AmountDue` AS `AmountDue`, `b`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `b`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`bills` `b` join `companies` `c` on(`c`.`CompanyId` = `b`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `b`.`BillId` and `h`.`TypeId` = 1 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
@@ -429,6 +556,9 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 DROP TABLE IF EXISTS `vwsubscriptions`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwsubscriptions`  AS SELECT `s`.`SubscriptionId` AS `SubscriptionId`, `s`.`Name` AS `Name`, `s`.`AmountDue` AS `AmountDue`, `s`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `s`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`subscriptions` `s` join `companies` `c` on(`c`.`CompanyId` = `s`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `s`.`SubscriptionId` and `h`.`TypeId` = 3 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
+DROP TABLE IF EXISTS `vwsuggestions`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwsuggestions`  AS SELECT `s`.`SuggestionId` AS `SuggestionId`, `s`.`SuggestHeader` AS `SuggestHeader`, `s`.`SuggestBody` AS `SuggestBody`, `s`.`DateSubmitted` AS `DateSubmitted`, `s`.`UserId` AS `AuthorId`, `u`.`FirstName` AS `AuthorFirstName`, `u`.`LastName` AS `AuthorLastName`, `s`.`SuggestionOption` AS `SuggestionOption`, `o`.`WaitingOption` AS `WaitingOption`, `s`.`DenyReason` AS `DenyReason`, `s`.`ApproveDenyBy` AS `ApproveDenyBy`, `ad`.`FirstName` AS `FirstName`, `ad`.`LastName` AS `LastName` FROM (((`suggestions` `s` join `users` `u` on(`u`.`UserId` = `s`.`UserId`)) left join `watingoptions` `o` on(`o`.`OptionId` = `s`.`SuggestionOption`)) left join `users` `ad` on(`ad`.`UserId` = `s`.`ApproveDenyBy`))  ;
 DROP TABLE IF EXISTS `vwusers`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwusers`  AS SELECT `u`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName`, `u`.`Email` AS `Email`, `u`.`PhoneNumber` AS `PhoneNumber`, `u`.`Password` AS `Password`, `u`.`IsAdmin` AS `IsAdmin`, `p`.`ProfileId` AS `ProfileId`, `p`.`MonthlySalary` AS `MonthlySalary`, `p`.`Budget` AS `Budget`, `p`.`Savings` AS `Savings` FROM (`users` `u` join `userprofile` `p` on(`p`.`UserId` = `u`.`UserId`))  ;
@@ -446,6 +576,9 @@ ALTER TABLE `comments`
 ALTER TABLE `companies`
   ADD PRIMARY KEY (`CompanyId`),
   ADD KEY `UserId` (`UserId`);
+
+ALTER TABLE `error`
+  ADD PRIMARY KEY (`ErrorId`);
 
 ALTER TABLE `loans`
   ADD PRIMARY KEY (`LoanId`),
@@ -472,8 +605,18 @@ ALTER TABLE `subscriptions`
   ADD PRIMARY KEY (`SubscriptionId`),
   ADD KEY `CompanyId` (`CompanyId`);
 
+ALTER TABLE `suggestions`
+  ADD PRIMARY KEY (`SuggestionId`),
+  ADD KEY `UserId` (`UserId`),
+  ADD KEY `ApprovedBy` (`ApproveDenyBy`),
+  ADD KEY `SuggestionOption` (`SuggestionOption`);
+
 ALTER TABLE `types`
   ADD PRIMARY KEY (`TypeId`);
+
+ALTER TABLE `usererror`
+  ADD PRIMARY KEY (`UserId`,`ErrorId`),
+  ADD KEY `Constr_UserError_Error` (`ErrorId`);
 
 ALTER TABLE `userprofile`
   ADD PRIMARY KEY (`ProfileId`),
@@ -481,6 +624,9 @@ ALTER TABLE `userprofile`
 
 ALTER TABLE `users`
   ADD PRIMARY KEY (`UserId`);
+
+ALTER TABLE `watingoptions`
+  ADD PRIMARY KEY (`OptionId`);
 
 
 ALTER TABLE `bills`
@@ -491,6 +637,9 @@ ALTER TABLE `comments`
 
 ALTER TABLE `companies`
   MODIFY `CompanyId` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `error`
+  MODIFY `ErrorId` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `loans`
   MODIFY `LoanId` int(11) NOT NULL AUTO_INCREMENT;
@@ -510,6 +659,9 @@ ALTER TABLE `replies`
 ALTER TABLE `subscriptions`
   MODIFY `SubscriptionId` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `suggestions`
+  MODIFY `SuggestionId` int(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `types`
   MODIFY `TypeId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
@@ -518,6 +670,9 @@ ALTER TABLE `userprofile`
 
 ALTER TABLE `users`
   MODIFY `UserId` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `watingoptions`
+  MODIFY `OptionId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 
 ALTER TABLE `bills`
@@ -548,6 +703,15 @@ ALTER TABLE `replies`
 
 ALTER TABLE `subscriptions`
   ADD CONSTRAINT `subscriptions_ibfk_1` FOREIGN KEY (`CompanyId`) REFERENCES `companies` (`CompanyId`);
+
+ALTER TABLE `suggestions`
+  ADD CONSTRAINT `suggestions_ibfk_1` FOREIGN KEY (`UserId`) REFERENCES `users` (`UserId`),
+  ADD CONSTRAINT `suggestions_ibfk_2` FOREIGN KEY (`ApproveDenyBy`) REFERENCES `users` (`UserId`),
+  ADD CONSTRAINT `suggestions_ibfk_3` FOREIGN KEY (`SuggestionOption`) REFERENCES `watingoptions` (`OptionId`);
+
+ALTER TABLE `usererror`
+  ADD CONSTRAINT `Constr_UserError_Error` FOREIGN KEY (`ErrorId`) REFERENCES `error` (`ErrorId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `Constr_UserError_user` FOREIGN KEY (`UserId`) REFERENCES `users` (`UserId`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `userprofile`
   ADD CONSTRAINT `userprofile_ibfk_1` FOREIGN KEY (`UserId`) REFERENCES `users` (`UserId`);
