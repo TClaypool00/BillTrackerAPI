@@ -132,4 +132,14 @@ class BaseClass extends ValidateClass {
         $this->user_first_name = $this->row_value('FirstName');
         $this->user_last_name = $this->row_value('LastName');
     }
+
+    protected function format_date_to_string(string $date_as_string) {
+        $date = $this->date_from_string($date_as_string);
+
+        return date_format($date, 'D M d, Y g:i a');
+    }
+
+    protected function date_from_string(string $date) {
+        return date_create($date);
+    }
 }
