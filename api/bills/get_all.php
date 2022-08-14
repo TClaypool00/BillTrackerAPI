@@ -115,7 +115,7 @@ try {
             echo custom_array('No bills found');
         }
     } else {
-        http_response_code(404);
+        http_response_code(400);
         echo custom_array($bill->status);
     }
 } catch (Exception $e) {

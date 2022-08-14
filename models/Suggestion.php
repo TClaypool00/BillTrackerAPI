@@ -5,6 +5,7 @@ class Suggestion extends BaseClass {
     public string $suggestion_body;
     public string $date_submitted;
     public $approved_denied;
+    public string $option_string;
     public string $deny_reason;
     public int $approved_denied_by;
     public string $approved_denied_first_name;
@@ -45,7 +46,39 @@ class Suggestion extends BaseClass {
 
         $this->suggestion_header = $this->row_value('SuggestHeader');
         $this->suggestion_body = $this->row_value('SuggestBody');
+        $this->date_submitted = $this->row_value('DateSubmitted');
+        $this->user_id = $this->row_value('AuthorId');
+        $this->user_first_name = $this->row_value('AuthorFirstName');
+        $this->user_last_name = $this->row_value('AuthorLastName');
+        $this->approved_denied = $this->row_value('SuggestionOption');
+        $this->option_string = $this->row_value('WaitingOption');
+        $this->deny_reason = $this->row_value('DenyReason');
+        $this->approved_denied_by = $this->row_value('ApproveDenyBy');
+        $this->approved_denied_first_name = $this->row_value('FirstName');
+        $this->approved_denied_last_name = $this->row_value('LastName');
+    }
 
+    public function get_all() {
+        $this->query = $this->select_all;
+        if ($this->user_id !== 0) {
+            $this->additional_query = ' WHERE AuthorId = ' . ($this->user_id === null ? 'NULL' : $this->user_id);
+        }
+
+        if ($this->option_string !== '') {
+            $this->additional_query_empty();
+            $this->additional_query .= 'SuggestionOption = ' . $this->approved_denied;
+        }
+
+        if ($this->approved_denied_by !== 0) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'ApproveDenyBy =' . ($this->approved_denied_by === null ? 'NULL' : $this->approved_denied_by);
+        }
+
+        $this->stmt = $this->prepare_stmt($this->select_all . $this->additional_query);
+
+        $this->execute();
+
+        return $this->stmt;
     }
 
     public function format_data() {
@@ -95,7 +128,13 @@ class Suggestion extends BaseClass {
             'suggestionId' => $this->suggestion_id,
             'suggestionHeader' => $this->suggestion_header,
             'suggestionBody' => $this->suggestion_body,
-            'datePosted' => $this->date_submitted
+            'datePosted' => $this->date_submitted,
+            'suggestionOption' => $this->approved_denied,
+            'watingOption' => $this->option_string,
+            'denyReason' => $this->deny_reason,
+            'approveDenyBy' => $this->approved_denied_by,
+            'approveDenyFirstName' => $this->approved_denied_first_name,
+            'approveDenyLastName' => $this->approved_denied_last_name
         );
 
         if ($include_user) {
@@ -109,8 +148,21 @@ class Suggestion extends BaseClass {
         }
 
         return json_encode($suggest_arr);
+    }
 
+    public function not_found() {
+        return 'A suggestion with the id of ' . $this->suggestion_id . ' was not found';
+    }
 
+    public function validate_option() {
+        if (strtolower($this->option_string) === strtolower('approve')) {
+            $this->approved_denied = 1;
+        } else if (strtolower($this->option_string) === strtolower('deny')) {
+            $this->approved_denied = 2;
+        } else {
+            $this->format_status();
+            $this->status .= 'Option is not valid';
+        }
     }
 
     private function clean_data() {

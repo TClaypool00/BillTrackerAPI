@@ -14,7 +14,7 @@ try {
 
     if (!$suggestion->suggestion_exists()) {
         http_response_code(404);
-        echo custom_array('Suggestion does not exists');
+        echo custom_array($suggestion->not_found());
         die();
     }
 
