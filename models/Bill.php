@@ -81,6 +81,11 @@ class Bill extends BaseClass
             $this->additional_query .= 'IsLate =' . $this->is_late;
         }
 
+        if ($this->search !== null) {
+            $this->additional_query_empty();
+            $this->additional_query .= "BillName LIKE '%" . $this->search . "%'";
+        }
+
         $this->stmt = $this->prepare_stmt($this->query . $this->additional_query);
 
         $this->execute();
@@ -128,8 +133,7 @@ class Bill extends BaseClass
                     $this->status .= 'Bill name ' . $this->cannot_empty;
                 }
             } else {
-                $this->format_status();
-                $this->status .= 'Bill name must be a string';
+                $this->bill_name = strval($this->bill_name);
             }
         }
     }

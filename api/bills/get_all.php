@@ -41,6 +41,12 @@ try {
     } else {
         $bill->show_currency = false;
     }
+
+    if (get_isset('search')) {
+        $bill->search = set_get_variable('search');
+    } else {
+        $bill->search = null;
+    }
     
     $bill->validate_user_id(true);
     $bill->validate_is_active(true);

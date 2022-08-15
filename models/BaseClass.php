@@ -31,7 +31,7 @@ class BaseClass extends ValidateClass {
     }
 
     public function all_params_null() {
-        if ($this->is_active === null && $this->user_id === null && $this->is_paid === null && $this->is_late === null && $this->company_id === null && $this->date_due === null) {
+        if ($this->is_active === null && $this->user_id === null && $this->is_paid === null && $this->is_late === null && $this->company_id === null && $this->date_due === null && $this->search === null) {
             return true;
         }
 

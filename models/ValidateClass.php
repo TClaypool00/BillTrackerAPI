@@ -21,6 +21,7 @@ class ValidateClass {
     public $is_edited;
     public $return_object;
     public $include_drop_down;
+    public $search;
 
     public $status = '';
     public static $all_params_null = 'Only admins can have all parameters be null';
