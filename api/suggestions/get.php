@@ -13,6 +13,12 @@ try {
         die();
     }
 
+    if (!$decoded->isAdmin && !$suggestion->user_has_sugguestion()) {
+        http_response_code(403);
+        echo custom_array(Suggestion::$not_auth);
+        die();
+    }
+
     $suggestion->get();
 
     echo $suggestion->suggestion_array('', $decoded->userId !== $suggestion->user_id);

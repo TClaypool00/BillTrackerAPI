@@ -23,6 +23,17 @@ try {
         $suggestion->approved_denied_by = 0;
     }
 
+    if (!$decoded->isAdmin && $suggestion->user_id === 0) {
+        if ($suggestion->approved_denied === '' || $suggestion->approved_denied_by === 0) {
+            http_response_code(403);
+            echo custom_array(Suggestion::$all_params_null);
+            die();
+        } else {
+            http_response_code(403);
+            echo custom_array(Suggestion::$user_id_null);
+        }
+    }
+
     $suggestion->validate_user_id(true);
     $suggestion->validate_option();
 

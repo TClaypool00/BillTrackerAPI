@@ -20,6 +20,8 @@ try {
 
     if (get_isset('returnObject')) {
         $suggestion->return_object = set_get_variable('returnObject');
+    } else {
+        $suggestion->return_object = true;
     }
     
     $suggestion->validate_boolean(BooleanTypes::ReturnObject);
@@ -28,16 +30,27 @@ try {
     $suggestion->data_too_long();
 
     if ($suggestion->status_is_empty()) {
-        if ($suggestion->update()) {
-            http_response_code(200);
-            if ($suggestion->return_object) {
-                echo $suggestion->suggestion_array(MESSAGE, true);
+        if ($decoded->isAdmin || $suggestion->user_has_sugguestion()) {
+            if ($suggestion->suggestion_name_exists(true)) {
+                http_response_code(400);
+                echo custom_array('Suggestion already exists');
             } else {
-                echo custom_array(MESSAGE);
+                if ($suggestion->update()) {
+                    http_response_code(200);
+                    if ($suggestion->return_object) {
+                        $suggestion->get();
+                        echo $suggestion->suggestion_array(MESSAGE, true);
+                    } else {
+                        echo custom_array(MESSAGE);
+                    }
+                } else {
+                    http_response_code(400);
+                    echo custom_array('Suggeston could not be updated');
+                }
             }
         } else {
-            http_response_code(400);
-            echo custom_array('Suggeston could not be updated');
+            http_response_code(403);
+            echo custom_array(Suggestion::$not_auth);
         }
     } else {
         http_response_code(400);

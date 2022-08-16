@@ -16,12 +16,14 @@ try {
     if ($suggestion->status_is_empty()) {
         if ($suggestion->suggestion_name_exists()) {
             http_response_code(400);
-            echo custom_array("A suggestion with header '" . $suggestion->suggestion_header . "'");
+            echo custom_array("A suggestion with header '" . $suggestion->suggestion_header . "' alaready exiss");
             die();
         } else {
             $suggestion->create();
-            if (is_numeric($suggestion->suggestion_id)) {
+            if (is_numeric($suggestion->suggestion_id) && $suggestion->suggestion_id !== 0) {
                 http_response_code(201);
+                $suggestion->get();
+
                 echo $suggestion->suggestion_array('Suggestion has been created', true);
             } else {
                 http_response_code(400);

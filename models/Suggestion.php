@@ -1,15 +1,15 @@
 <?php
 class Suggestion extends BaseClass {
     public int $suggestion_id;
-    public string $suggestion_header;
-    public string $suggestion_body;
-    public string $date_submitted;
+    public $suggestion_header;
+    public $suggestion_body;
+    public $date_submitted;
     public $approved_denied;
-    public string $option_string;
-    public string $deny_reason;
-    public int $approved_denied_by;
-    public string $approved_denied_first_name;
-    public string $approved_denied_last_name;
+    public $option_string;
+    public $deny_reason;
+    public $approved_denied_by;
+    public $approved_denied_first_name;
+    public $approved_denied_last_name;
 
     private string $select_all = 'SELECT * FROM vwsuggestions';
 
@@ -56,6 +56,8 @@ class Suggestion extends BaseClass {
         $this->approved_denied_by = $this->row_value('ApproveDenyBy');
         $this->approved_denied_first_name = $this->row_value('FirstName');
         $this->approved_denied_last_name = $this->row_value('LastName');
+
+        $this->date_submitted = $this->format_date_to_string($this->date_submitted);
     }
 
     public function get_all() {
@@ -105,8 +107,16 @@ class Suggestion extends BaseClass {
         }
     }
 
-    public function suggestion_name_exists() {
-        $this->query = 'SELECT EXISTS(SELECT SuggestionId FROM suggestions WHERE SuggestHeader = ' . $this->suggestion_header . ') AS SuggestionNameExists';
+    public function suggestion_name_exists(bool $is_udate = false) {
+        $this->query = "SELECT EXISTS(SELECT SuggestionId FROM suggestions WHERE SuggestHeader = '" . $this->suggestion_header;
+
+        if ($is_udate) {
+            $this->query .= "' AND SuggestionId != " . $this->suggestion_id;
+        }
+
+        $this->query .= ") AS SuggestionNameExists";
+
+        echo $this->query;
 
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
@@ -116,6 +126,15 @@ class Suggestion extends BaseClass {
 
     public function suggestion_exists() {
         $this->query = 'SELECT EXISTS(SELECT SuggestionId FROM suggestions WHERE SuggestionId = ' . $this->suggestion_id . ') AS SuggestionExists';
+
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+
+        return boolval($this->stmt->fetchColumn());
+    }
+
+    public function user_has_sugguestion() {
+        $this->query = 'SELECT EXISTS(SELECT SuggestionId FROM suggestions WHERE SuggestionId = ' . $this->suggestion_id . ' AND  UserId = ' . $this->user_id . ') AS SuggestionExists';
 
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
