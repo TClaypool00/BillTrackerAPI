@@ -3,6 +3,7 @@ include '../../partail_files/update_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_subscription.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/BooleanTypes.php';
 
 try {
     $sub->subscription_id = set_id();
@@ -18,6 +19,13 @@ try {
     $sub->date_due = $data->dueDate ?? null;
     $sub->is_active = $data->isActive ?? null;
     $sub->company_id = $data->companyId ?? null;
+    $sub->user_id = $decoded->userId;
+
+    if (get_isset('includeDropDown')) {
+        $sub->include_drop_down = set_get_variable('includeDropDown');
+    } else {
+        $sub->include_drop_down = false;
+    }
 
     $sub->data_is_null();
     $sub->validate_data();
@@ -26,9 +34,9 @@ try {
     $sub->validate_company_id();
     $sub->validate_date();
     $sub->validate_is_active();
+    $sub->validate_boolean(BooleanTypes::IncludeDropDown);
 
     if ($sub->status_is_empty()) {
-        $sub->user_id = $decoded->userId;
 
         if (!$sub->user_has_sub()) {
             http_response_code(403);
@@ -44,7 +52,8 @@ try {
 
         if ($sub->update()) {
             http_response_code(200);
-            echo custom_array('Subscription updated');
+            $sub->get();
+            echo $sub->sub_array($sub->include_drop_down, $sub->user_id !== $decoded->userId, 'Subscription has been updated');
         } else {
             http_response_code(400);
             echo custom_array('Subscription could not be updated');

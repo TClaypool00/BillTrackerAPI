@@ -50,29 +50,7 @@ try {
             $sub->amount_due = currency($sub->amount_due);
         }
 
-        $sub_arr = array(
-            'subscriptionId' => $sub->subscription_id,
-            'name' => $sub->name,
-            'amountDue' => $sub->amount_due,
-            'dueDate' => $sub->date_due,
-            'isActive' => boolval($sub->is_active),
-            'datePaid' => $sub->date_paid,
-            'isPaid' => boolval($sub->is_paid),
-            'isLate' => boolval($sub->is_late),
-            'companyId' => $sub->company_id
-        );
-
-        $sub_arr['companyName'] = $sub->company_name;
-        $sub_arr['companies'] = $sub->drop_down();
-
-        if ($sub->user_id !== $decoded->userId) {
-            $sub_arr['userId'] = $sub->user_id;
-            $sub_arr['firstName'] = $sub->user_first_name;
-            $sub_arr['lastName'] = $sub->user_last_name;
-        }
-
-        http_response_code(200);
-        print_r(json_encode($sub_arr));
+        echo $sub->sub_array(true, $sub->user_id !== $decoded->userId);
     } else {
         http_response_code(400);
         echo custom_array($sub->status);

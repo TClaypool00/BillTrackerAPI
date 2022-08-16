@@ -19,8 +19,9 @@ class Subscription extends BaseClass
         $this->clean_data();
 
         $this->stmt = $this->prepare_stmt("CALL insSub('{$this->name}', '{$this->amount_due}', '{$this->date_due}', '{$this->company_id}');");
+        $this->execute();
 
-        return $this->stmt_executed();
+        $this->subscription_id = $this->stmt->fetchColumn();
     }
 
     public function update()
@@ -151,6 +152,40 @@ class Subscription extends BaseClass
             $this->format_status();
             $this->status .= 'Name' . $this->too_long;
         }
+    }
+
+    public function sub_array(bool $inclue_drop_down = false, bool $inclue_user = false, $message = null) {
+        $this->date_due = $this->format_date($this->date_due);
+
+        $sub_arr = array(
+            'subscriptionId' => $this->subscription_id,
+            'name' => $this->name,
+            'amountDue' => $this->amount_due,
+            'dueDate' => $this->date_due,
+            'isActive' => boolval($this->is_active),
+            'datePaid' => $this->date_paid,
+            'isPaid' => boolval($this->is_paid),
+            'isLate' => boolval($this->is_late),
+            'companyId' => $this->company_id
+        );
+
+        $sub_arr['companyName'] = $this->company_name;
+
+        if ($message !== null) {
+            $sub_arr['message'] = $message;
+        }
+        
+        if ($inclue_drop_down) {
+            $sub_arr['companies'] = $this->drop_down();
+        }
+
+        if ($inclue_user) {
+            $sub_arr['userId'] = $this->user_id;
+            $sub_arr['firstName'] = $this->user_first_name;
+            $sub_arr['lastName'] = $this->user_last_name;
+        }
+
+        return json_encode($sub_arr);
     }
 
     private function clean_data()
