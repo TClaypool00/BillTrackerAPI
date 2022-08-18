@@ -31,7 +31,7 @@ class Suggestion extends BaseClass {
     public function update() {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL updSuggestion('{$this->suggestion_header}', '{$this->suggestion_body}', '{$this->suggestion_id}');");
+        $this->stmt = $this->prepare_stmt("CALL updSuggestion('{$this->suggestion_id}', '{$this->suggestion_header}', '{$this->suggestion_body}');");
 
         return $this->stmt_executed();
     }
@@ -83,6 +83,12 @@ class Suggestion extends BaseClass {
         return $this->stmt;
     }
 
+    public function approve_deny() {
+        $this->stmt = $this->prepare_stmt("CALL updApproveDenySuggestion('{$this->suggestion_id}', '{$this->approved_denied}', '{$this->deny_reason}', '{$this->user_id}');");
+
+        return $this->stmt_executed();
+    }
+
     public function format_data() {
         $this->suggestion_header = strval($this->suggestion_header);
         $this->suggestion_body = strval($this->suggestion_body);
@@ -116,8 +122,6 @@ class Suggestion extends BaseClass {
 
         $this->query .= ") AS SuggestionNameExists";
 
-        echo $this->query;
-
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
 
@@ -142,7 +146,24 @@ class Suggestion extends BaseClass {
         return boolval($this->stmt->fetchColumn());
     }
 
-    public function suggestion_array(string $message = '', bool $include_user = false) {
+    public function get_option_string() {
+        $this->query = 'SELECT WaitingOption FROM vwsuggestions WHERE SuggestionId = ' . $this->suggestion_id;
+
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+
+        $this->option_string = $this->stmt->fetchColumn();
+    }
+
+    public function option_string_null() {
+        return is_null($this->option_string);
+    }
+
+    public function option_string_message() {
+        return 'Suggestion has already been ' . strtolower($this->option_string); 
+    }
+
+    public function suggestion_array(string $message = '', bool $include_user = false, bool $first_index = false) {
         $suggest_arr = array(
             'suggestionId' => $this->suggestion_id,
             'suggestionHeader' => $this->suggestion_header,
@@ -157,6 +178,10 @@ class Suggestion extends BaseClass {
         );
 
         if ($include_user) {
+            if ($first_index) {
+                $this->first_index_string();
+            }
+
             $suggest_arr['authorId'] = $this->user_id;
             $suggest_arr['authorFirstName'] = $this->user_first_name;
             $suggest_arr['authorLastName'] = $this->user_last_name;
@@ -181,6 +206,17 @@ class Suggestion extends BaseClass {
         } else {
             $this->format_status();
             $this->status .= 'Option is not valid';
+        }
+    }
+
+    public function validate_deny_reason() {
+        if ($this->deny_reason === '' || $this->deny_reason === null) {
+            $this->format_data();
+            $this->status .= 'Reason' . $this->cannot_be_null;
+        }
+        
+        if (!is_string($this->deny_reason)) {
+            $this->deny_reason = strval($this->deny_reason);
         }
     }
 
