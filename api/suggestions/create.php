@@ -24,7 +24,7 @@ try {
                 http_response_code(201);
                 $suggestion->get();
 
-                echo $suggestion->suggestion_array('Suggestion has been created', true);
+                echo $suggestion->suggestion_array('Suggestion has been created', true, true);
             } else {
                 http_response_code(400);
                 echo custom_array('Suggestion could not be created');

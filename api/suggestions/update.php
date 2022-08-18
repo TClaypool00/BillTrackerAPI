@@ -39,7 +39,7 @@ try {
                     http_response_code(200);
                     if ($suggestion->return_object) {
                         $suggestion->get();
-                        echo $suggestion->suggestion_array(MESSAGE, true);
+                        echo $suggestion->suggestion_array(MESSAGE, true, true);
                     } else {
                         echo custom_array(MESSAGE);
                     }

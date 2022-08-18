@@ -215,7 +215,11 @@ class ValidateClass {
 
     protected function convert_string_to_date() {
         return date('Y-m-d', $this->time_stamp);
-    } 
+    }
+
+    protected function first_index_string() {
+        $this->user_last_name = substr($this->user_last_name, 0, 1) . '.';
+    }
 
     public function validate_date($can_be_null = false, $can_be_in_past = false) {
         if ($this->date_due === null) {
