@@ -152,6 +152,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN
     
     INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
     VALUES (subId, 3, due_date);
+    
+    SELECT subId;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insSuggestion` (IN `header` VARCHAR(255), IN `body` TEXT, IN `user_id` INT)   BEGIN
@@ -163,6 +165,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insSuggestion` (IN `header` VARCHAR
    	START TRANSACTION;
     INSERT INTO suggestions (SuggestHeader, SuggestBody, UserId)
     VALUES (header, body, user_id);
+    
+    SELECT LAST_INSERT_ID() AS SuggestionId;
     
     COMMIT;
 END$$
@@ -277,7 +281,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updSub` (IN `name` VARCHAR(255), IN
     WHERE ExpenseId = id AND TypeId = 3 AND (MONTH(DateDue) = MONTH(NOW()) AND YEAR(DateDue) = YEAR(NOW()));
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updSuggestion` (IN `suggestion_id` INT, IN `header` INT, IN `body` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updSuggestion` (IN `suggestion_id` INT, IN `header` VARCHAR(255), IN `body` TEXT)   BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
     	ROLLBACK;
@@ -323,7 +327,7 @@ CREATE TABLE `companies` (
 
 CREATE TABLE `error` (
   `ErrorId` int(11) NOT NULL,
-  `ErrorMessage` varchar(255) NOT NULL,
+  `ErrorMessage` text NOT NULL,
   `ErrorCode` int(11) NOT NULL,
   `ErrorLine` int(11) NOT NULL,
   `StackTrace` text NOT NULL
@@ -536,8 +540,8 @@ CREATE TABLE `watingoptions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `watingoptions` (`OptionId`, `WaitingOption`) VALUES
-(1, 'Approve'),
-(2, 'Deny');
+(1, 'Approved'),
+(2, 'Denied');
 DROP TABLE IF EXISTS `vwbills`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwbills`  AS SELECT `b`.`BillId` AS `BillId`, `b`.`BillName` AS `BillName`, `b`.`AmountDue` AS `AmountDue`, `b`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `b`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`bills` `b` join `companies` `c` on(`c`.`CompanyId` = `b`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `b`.`BillId` and `h`.`TypeId` = 1 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
