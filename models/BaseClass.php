@@ -9,6 +9,8 @@ class BaseClass extends ValidateClass {
     protected $row;
     protected $query;
     protected $time_stamp;
+    protected $error_message;
+    protected $stack_trace;
 
     public function pay($id, $type_id) {
         $this->stmt = $this->prepare_stmt("CALL updPayExpense('{$id}', '{$type_id}');");
@@ -68,8 +70,14 @@ class BaseClass extends ValidateClass {
     }
 
     public function createError(Exception $e) {
-        $this->query = "CALL insError('{$e->getMessage()}', '{$e->getCode()}', '{$e->getLine()}', '{$e->getTraceAsString()}', '{$this->user_id}');";
-        echo $this->query;
+        $this->error_message = $e->getMessage();
+        $this->stack_trace = $e->getTraceAsString();
+
+        $this->error_message = str_replace("'", '', $this->error_message);
+        $this->stack_trace = str_replace("'", '', $this->stack_trace);
+
+        $this->query = "CALL insError('{$this->error_message}', '{$e->getCode()}', '{$e->getLine()}', '{$this->stack_trace}', '{$this->user_id}');";
+
         $this->stmt = $this->prepare_stmt($this->query);
 
         $this->execute();
