@@ -28,28 +28,20 @@ try {
         $misc->show_currency = false;
     }
 
+    if (get_isset('includeDropDown')) {
+        $misc->include_drop_down = set_get_variable('includeDropDown');
+    } else {
+        $misc->include_drop_down = true;
+    }
+
     $misc->validate_boolean(BooleanTypes::ShowCurrency);
+    $misc->validate_boolean(BooleanTypes::IncludeDropDown);
 
     if ($misc->status_is_empty()) {
-        $misc->get();
-
-        if ($misc->show_currency) {
-            $misc->amount = currency($misc->amount);
-        }
-
-        $misc_arr = array(
-            'miscellaneousId' => $misc->miscellaneous_id,
-            'name' => $misc->name,
-            'amount' => $misc->amount,
-            'companyId' => $misc->company_id,
-            'companyName' => $misc->company_name,
-            'userId' => $misc->user_id,
-            'firstName' => $misc->user_first_name,
-            'lastName' => $misc->user_last_name
-        );
+        $misc->get();        
 
         http_response_code(200);
-        print_r(json_encode($misc_arr));
+        print_r($misc->miscellaneous_array($misc->include_drop_down, $misc->user_id !== $decoded->userId, null, $misc->show_currency));
     } else {
         http_response_code(400);
         echo custom_array($misc->status);

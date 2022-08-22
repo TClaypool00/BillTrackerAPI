@@ -19,7 +19,9 @@ class Miscellaneous extends BaseClass {
 
         $this->stmt = $this->prepare_stmt("CALL insMisc('{$this->name}', '{$this->amount}', '{$this->company_id}');");
 
-        return $this->stmt_executed();
+        $this->execute();
+
+        $this->miscellaneous_id = $this->stmt->fetchColumn();
     }
 
     public function update() {
@@ -154,6 +156,36 @@ class Miscellaneous extends BaseClass {
         $this->stmt = $this->prepare_stmt($this->query);
         $this->execute();
         return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
+    public function miscellaneous_array(bool $include_drop_down = false, bool $include_user_info = false, $message = null, bool $show_currency = false) {
+        if ($show_currency) {
+            $this->amount = currency($this->amount);
+        }
+
+        $misc_arr = array(
+            'miscellaneousId' => $this->miscellaneous_id,
+            'name' => $this->name,
+            'amount' => $this->amount,
+            'companyId' => $this->company_id,
+            'companyName' => $this->company_name
+        );
+
+        if ($include_drop_down) {
+            $misc_arr['companies'] = $this->drop_down();
+        }
+
+        if ($include_user_info) {
+            $misc_arr['userId'] = $this->user_id;
+            $misc_arr['firstName'] = $this->user_first_name;
+            $misc_arr['lastName'] = $this->user_last_name;
+        }
+
+        if ($message !== null) {
+            $misc_arr['message'] = $message;
+        }
+
+        return json_encode($misc_arr);
     }
 
     private function clean_data() {

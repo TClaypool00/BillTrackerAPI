@@ -23,8 +23,9 @@ class Loan extends BaseClass
         $this->clean_data();
 
         $this->stmt = $this->prepare_stmt("CALL insLoan('{$this->loan_name}', '{$this->monthly_amt_due}', '{$this->total_loan_amt}', '{$this->remaining_amt}', '{$this->company_id}', '{$this->date_due}');");
+        $this->execute();
 
-        return $this->stmt_executed();
+        $this->loan_id = $this->stmt->fetchColumn();
     }
 
     public function update()
@@ -155,6 +156,45 @@ class Loan extends BaseClass
 
         $this->execute();
         return $this->convert_to_boolean($this->stmt->fetchColumn());
+    }
+
+    public function loan_array(bool $include_drop_down = false, bool $include_user_info = false, $message = null, bool $show_currency = false) {
+        $loan_arr = array(
+            'loanId' => $this->loan_id,
+            'loanName' => $this->loan_name,
+            'isActive' => boolval($this->is_active),
+            'monthlyAmountDue' => $this->monthly_amt_due,
+            'totalAmountDue' => $this->total_loan_amt,
+            'remainingAmount' => $this->remaining_amt,
+            'dateDue' => $this->date_due,
+            'datePaid' => $this->date_paid,
+            'isPaid' => boolval($this->is_paid),
+            'isLate' => boolval($this->is_late),
+            'companyId' => $this->company_id,
+            'companyName' => $this->company_name
+        );
+        
+        if ($include_drop_down) {
+            $loan_arr['companies'] = $this->drop_down();
+        }
+
+        if ($include_user_info) {
+            $loan_arr['userId'] = $this->user_id;
+            $loan_arr['firstName'] = $this->user_first_name;
+            $loan_arr['lastName'] = $this->user_last_name;
+        }
+
+        if ($message !== null) {
+            $loan_arr['message'] = $message;
+        }
+
+        if ($show_currency) {
+            $this->monthly_amt_due = currency($this->monthly_amt_due);
+            $this->total_loan_amt = currency($this->total_loan_amt);
+            $this->remaining_amt = currency($this->remaining_amt);
+        }
+
+        return json_encode($loan_arr);
     }
 
     private function clean_data()

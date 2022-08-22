@@ -38,7 +38,7 @@ try {
 
         if($misc->update()) {
             http_response_code(200);
-            echo custom_array('Miscellaneous has been updated');
+            print_r($misc->miscellaneous_array(true, $misc->user_id !== $decoded->userId, 'Miscellaneous has been updated', false));
         } else {
             http_response_code(400);
             echo custom_array('Miscellaneous could not be updated');

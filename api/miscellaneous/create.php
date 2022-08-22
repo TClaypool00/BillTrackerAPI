@@ -5,9 +5,11 @@ include '../../partail_files/object_partial_files/new_miscellaneous.php';
 include '../../partail_files/jwt_partial.php';
 
 try {
+    define('MESSAGE', 'Miscellaneous has been added');
     $misc->name = $data->name ?? null;
     $misc->amount = $data->amount ?? null;
     $misc->company_id = $data->companyId ?? null;
+    $misc->user_id = $decoded->userId;
 
     $misc->data_is_null();
     $misc->validate_data();
@@ -15,17 +17,22 @@ try {
     $misc->data_is_too_long();
 
     if ($misc->status_is_empty()) {
-        $misc->user_id = $decoded->userId;
-
         if (!$misc->user_has_company()) {
             http_response_code(403);
             echo custom_array(Miscellaneous::$does_not_have_company);
             die();
         }
 
-        if ($misc->create()) {
+        $misc->create();
+
+        if (is_numeric($misc->miscellaneous_id) && $misc->miscellaneous_id !== 0) {
             http_response_code(201);
-            echo custom_array('Miscellaneous has been added');
+            if ($misc->return_object) {
+                $misc->get();
+                print_r($misc->miscellaneous_array(false, $misc->user_id !== $decoded->userId, MESSAGE, $misc->show_currency));
+            } else {
+                echo custom_array(MESSAGE);
+            }
         } else {
             http_response_code(400);
             echo custom_array('Miscellaneous could not be added');
