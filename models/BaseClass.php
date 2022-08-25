@@ -69,7 +69,7 @@ class BaseClass extends ValidateClass {
         return $company_arr;
     }
 
-    public function createError(Exception $e) {
+    public function createError(Throwable $e) {
         $this->error_message = $e->getMessage();
         $this->stack_trace = $e->getTraceAsString();
 
@@ -81,6 +81,12 @@ class BaseClass extends ValidateClass {
         $this->stmt = $this->prepare_stmt($this->query);
 
         $this->execute();
+    }
+
+    public function format_date_to_string(string $date_as_string) {
+        $date = $this->date_from_string($date_as_string);
+
+        return date_format($date, 'D M d, Y g:i a');
     }
 
     protected function stmt_executed() {
@@ -141,19 +147,13 @@ class BaseClass extends ValidateClass {
         $this->user_last_name = $this->row_value('LastName');
     }
 
-    protected function format_date_to_string(string $date_as_string) {
-        $date = $this->date_from_string($date_as_string);
-
-        return date_format($date, 'D M d, Y g:i a');
+    protected function date_from_string(string $date) {
+        return date_create($date);
     }
 
     protected function format_date(string $date_as_string) {
         $date = $this->date_from_string($date_as_string);
 
         return date_format($date, 'D M d, Y');
-    }
-
-    protected function date_from_string(string $date) {
-        return date_create($date);
     }
 }

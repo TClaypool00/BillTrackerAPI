@@ -41,7 +41,7 @@ class Post extends BaseClass {
 
         $this->post_id = $this->row_value('PostId');
         $this->post_body = $this->row_value('PostBody');
-        $this->date_posted = $this->row_value('DatePosted');
+        $this->date_posted = $this->format_date_to_string($this->row_value('DatePosted'));
         $this->is_edited = $this->row_value('IsEdited');
         $this->user_id = $this->row_value('UserId');
         $this->user_first_name = $this->row_value('FirstName');
@@ -153,7 +153,7 @@ class Post extends BaseClass {
             $this->post_id = $this->row_value('PostId');
         }
 
-        $this->date_posted = $this->row_value('DatePosted');
+        $this->date_posted = $this->format_date_to_string($this->row_value('DatePosted'));
         $this->is_edited = boolval($this->row_value('IsEdited'));
     }
 }
