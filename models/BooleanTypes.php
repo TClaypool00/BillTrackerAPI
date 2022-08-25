@@ -7,4 +7,5 @@ enum BooleanTypes {
     case IsEdited;
     case ReturnObject;
     case IncludeDropDown;
+    case IsActive;
 }
