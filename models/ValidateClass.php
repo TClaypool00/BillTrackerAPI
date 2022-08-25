@@ -22,6 +22,8 @@ class ValidateClass {
     public $return_object;
     public $include_drop_down;
     public $search;
+    public $comment_id;
+    public $parent_id;
 
     public $status = '';
     public static $all_params_null = 'Only admins can have all parameters be null';
@@ -37,31 +39,6 @@ class ValidateClass {
     protected $not_found = ' not found';
     protected $user_id_string = 'User Id';
     protected $not_an_option = 'Not a valid option';
-
-    public function validate_is_active($can_be_null = false) {
-        if ($this->is_active === null) {
-            if (!$can_be_null) {
-                $this->format_status();
-                $this->status .= 'Is Active' . $this->cannot_be_null;
-            }
-        } else {
-            if(is_string($this->is_active)){
-                if ($this->is_active === 'true') {
-                    $this->is_active = true;
-                } else if($this->is_active === 'false') {
-                    $this->is_active = 0;
-                } else {
-                    $this->format_status();
-                    $this->status .= $this->not_an_option;
-                }
-            } else if (is_bool($this->is_active)){
-                $this->is_active = boolval($this->is_active);
-            } else {
-                $this->format_status();
-                $this->status .= 'Is Active must be a boolean';
-            }
-        }
-    }
 
     public function validate_boolean(BooleanTypes $type, $can_be_null = false) {
         $value = null;
@@ -150,19 +127,60 @@ class ValidateClass {
         }
     }
 
-    public function validate_company_id($can_be_null = false) {
-        if ($this->company_id === null) {
+    public function validate_id(IdTypes $type, bool $can_be_null = false) {
+        $value = null;
+        $value_name = '';
+
+        switch($type) {
+            case IdTypes::UserId:
+                $value = $this->user_id;
+                $value_name = 'UserId';
+                break;
+            case IdTypes::CommentId:
+                $value = $this->comment_id;
+                $value_name = 'CommentId';
+                break;
+            case IdTypes::ParentId:
+                $value = $this->parent_id;
+                $value_name = 'ParentId';
+                break;
+            case IdTypes::TypeId:
+                $value = $this->type_id;
+                $value_name = 'TypeId';
+                break;
+            default:
+            throw new TypeError($this->not_an_option);
+        }
+
+        if ($value === null) {
             if (!$can_be_null) {
                 $this->format_status();
-                $this->status .= 'Company Id' . $this->cannot_be_null;
+                $this->status .= $value_name . $this->cannot_be_null;
             }
         } else {
-            if (is_numeric($this->company_id)) {
-                $this->company_id = intval($this->company_id);
+            if (is_numeric($value)) {
+                $value = intval($value);
             } else {
                 $this->format_status();
-                $this->status .= 'Company Id' . $this->must_be_num;
+                $this->status .= $value_name . $this->must_be_num;
             }
+        }
+
+        switch($type) {
+            case IdTypes::UserId:
+                $this->user_id = $value;
+                break;
+            case IdTypes::CommentId:
+                $this->comment_id = $value;
+                break;
+            case IdTypes::ParentId:
+                $this->parent_id = $value;
+                break;
+            case IdTypes::TypeId:
+                $this->type_id = $value;
+                break;
+            default:
+            throw new TypeError($this->not_an_option);
         }
     }
 
@@ -170,22 +188,6 @@ class ValidateClass {
         if (is_null($this->date_due)) {
             $this->format_status();
             $this->status .= 'Due date' . $this->cannot_be_null;
-        }
-    }
-
-    public function validate_user_id($can_be_null = false) {
-        if ($this->user_id === null) {
-            if (!$can_be_null) {
-                $this->format_status();
-                $this->status .= $this->user_id_string . $this->cannot_be_null;
-            }
-        } else {
-            if (is_numeric($this->user_id)) {
-                $this->user_id = intval($this->user_id);
-            } else {
-                $this->format_status();
-                $this->status .= $this->user_id_string . $this->must_be_num;
-            }
         }
     }
 
@@ -241,10 +243,6 @@ class ValidateClass {
     }
 
     public function status_is_empty() {
-        if ($this->status === '') {
-            return true;
-        }
-
-        return false;
+        return $this->status === '';
     }
 }
