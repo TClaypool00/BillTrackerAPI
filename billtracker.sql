@@ -63,8 +63,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(25
         COMMIT;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insComment` (IN `comment_body` VARCHAR(255), IN `post_id` INT, IN `user_id` INT)   INSERT INTO comments (CommentBody, PostId, UserId)
-VALUES (comment_body, post_id, user_id)$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insComment` (IN `comment_body` VARCHAR(255), IN `user_id` INT(11), IN `type_id` INT(11), IN `parent_id` INT(11))   BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	SELECT 'There was an error' AS Err;
+    	ROLLBACK;
+    END;
+
+	START TRANSACTION;
+    INSERT INTO comments (CommentBody, UserId, TypeId, ParentId)
+    VALUES (comment_body, user_id, type_id, parent_id);
+    
+    SELECT LAST_INSERT_ID() AS CompanyId;
+    
+    COMMIT;
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insCompany` (IN `company_name` VARCHAR(255), IN `user_id` INT(11))   INSERT INTO companies (CompanyName, UserId)
 VALUES (company_name, user_id)$$
@@ -81,11 +94,14 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insError` (IN `error_message` VARCH
     START TRANSACTION;
     	IF EXISTS(SELECT * FROM error WHERE ErrorCode = err_code) THEN
         	SET error_id = (SELECT ErrorId FROM error WHERE ErrorCode = err_code);
+            SELECT FALSE AS FirstError;
         ELSE        	
         	INSERT INTO error(ErrorMessage, ErrorCode, ErrorLine, StackTrace)
             VALUES (error_message, err_code, err_line, stack_trace);
 
-            SET error_id = LAST_INSERT_ID();        	
+            SET error_id = LAST_INSERT_ID();
+            SELECT TRUE AS FirstError;
+            
         END IF;
         
         IF NOT (EXISTS(SELECT UserId FROM usererror WHERE ErrorId = error_id AND UserId = user_id)) THEN
@@ -140,6 +156,20 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insPost` (IN `post_body` VARCHAR(25
     COMMIT;
     
     
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insReply` (IN `reply_body` VARCHAR(255), IN `comment_id` INT(11), IN `user_id` INT(11))   BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+    INSERT INTO replies (ReplyBody, CommentId, UserId)
+    VALUES (reply_body, comment_id, user_id);
+    
+    SELECT LAST_INSERT_ID() AS ReplyId;
+    COMMIT;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `company_id` INT)   BEGIN
@@ -220,9 +250,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(25
     COMMIT;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updComment` (IN `comment_body` VARCHAR(255), IN `comment_id` INT)   UPDATE comments
-SET CommentBody = comment_body, IsEdited = TRUE
-WHERE CommentId = comment_id$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updComment` (IN `comment_body` VARCHAR(255), IN `comment_id` INT)   BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+	UPDATE comments
+    SET CommentBody = comment_body, IsEdited = TRUE
+    WHERE CommentId = comment_id;
+    
+    COMMIT;
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updCompanyName` (IN `company_name` VARCHAR(255), IN `company_id` INT(11))   UPDATE companies
 SET CompanyName = company_name
@@ -314,9 +353,20 @@ CREATE TABLE `comments` (
   `CommentBody` varchar(255) NOT NULL,
   `DatePosted` datetime NOT NULL DEFAULT current_timestamp(),
   `IsEdited` tinyint(1) NOT NULL DEFAULT 0,
-  `PostId` int(11) NOT NULL,
-  `UserId` int(11) NOT NULL
+  `UserId` int(11) NOT NULL,
+  `TypeId` int(11) NOT NULL,
+  `ParentId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `commenttypes` (
+  `CommentTypeId` int(11) NOT NULL,
+  `CommentType` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `commenttypes` (`CommentTypeId`, `CommentType`) VALUES
+(1, 'Post'),
+(2, 'Error'),
+(3, 'Suggestion');
 
 CREATE TABLE `companies` (
   `CompanyId` int(11) NOT NULL,
@@ -445,6 +495,17 @@ CREATE TABLE `vwbills` (
 ,`FirstName` varchar(255)
 ,`LastName` varchar(255)
 );
+CREATE TABLE `vwcomments` (
+`CommentId` int(11)
+,`CommentBody` varchar(255)
+,`DatePosted` datetime
+,`IsEdited` tinyint(1)
+,`UserId` int(11)
+,`TypeId` int(11)
+,`ParentId` int(11)
+,`FirstName` varchar(255)
+,`LastName` varchar(255)
+);
 CREATE TABLE `vwcompanies` (
 `CompanyId` int(11)
 ,`CompanyName` varchar(255)
@@ -486,6 +547,16 @@ CREATE TABLE `vwposts` (
 ,`PostBody` varchar(255)
 ,`DatePosted` datetime
 ,`IsEdited` tinyint(1)
+,`UserId` int(11)
+,`FirstName` varchar(255)
+,`LastName` varchar(255)
+);
+CREATE TABLE `vwreplies` (
+`ReplyId` int(11)
+,`ReplyBody` varchar(255)
+,`DatePosted` datetime
+,`IsEdited` tinyint(1)
+,`CommentId` int(11)
 ,`UserId` int(11)
 ,`FirstName` varchar(255)
 ,`LastName` varchar(255)
@@ -545,6 +616,9 @@ INSERT INTO `watingoptions` (`OptionId`, `WaitingOption`) VALUES
 DROP TABLE IF EXISTS `vwbills`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwbills`  AS SELECT `b`.`BillId` AS `BillId`, `b`.`BillName` AS `BillName`, `b`.`AmountDue` AS `AmountDue`, `b`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `b`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`bills` `b` join `companies` `c` on(`c`.`CompanyId` = `b`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `b`.`BillId` and `h`.`TypeId` = 1 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
+DROP TABLE IF EXISTS `vwcomments`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwcomments`  AS SELECT `c`.`CommentId` AS `CommentId`, `c`.`CommentBody` AS `CommentBody`, `c`.`DatePosted` AS `DatePosted`, `c`.`IsEdited` AS `IsEdited`, `c`.`UserId` AS `UserId`, `c`.`TypeId` AS `TypeId`, `c`.`ParentId` AS `ParentId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (`comments` `c` join `users` `u` on(`c`.`UserId` = `u`.`UserId`))  ;
 DROP TABLE IF EXISTS `vwcompanies`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwcompanies`  AS SELECT `c`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `c`.`IsActive` AS `IsActive`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (`companies` `c` join `users` `u` on(`u`.`UserId` = `c`.`UserId`))  ;
@@ -557,6 +631,9 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 DROP TABLE IF EXISTS `vwposts`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwposts`  AS SELECT `p`.`PostId` AS `PostId`, `p`.`PostBody` AS `PostBody`, `p`.`DatePosted` AS `DatePosted`, `p`.`IsEdited` AS `IsEdited`, `p`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (`posts` `p` join `users` `u` on(`p`.`UserId` = `u`.`UserId`))  ;
+DROP TABLE IF EXISTS `vwreplies`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwreplies`  AS SELECT `r`.`ReplyId` AS `ReplyId`, `r`.`ReplyBody` AS `ReplyBody`, `r`.`DatePosted` AS `DatePosted`, `r`.`IsEdited` AS `IsEdited`, `r`.`CommentId` AS `CommentId`, `r`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (`replies` `r` join `users` `u` on(`u`.`UserId` = `r`.`UserId`))  ;
 DROP TABLE IF EXISTS `vwsubscriptions`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwsubscriptions`  AS SELECT `s`.`SubscriptionId` AS `SubscriptionId`, `s`.`Name` AS `Name`, `s`.`AmountDue` AS `AmountDue`, `s`.`IsActive` AS `IsActive`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `s`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`subscriptions` `s` join `companies` `c` on(`c`.`CompanyId` = `s`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `s`.`SubscriptionId` and `h`.`TypeId` = 3 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
@@ -574,8 +651,11 @@ ALTER TABLE `bills`
 
 ALTER TABLE `comments`
   ADD PRIMARY KEY (`CommentId`),
-  ADD KEY `PostId` (`PostId`),
-  ADD KEY `UserId` (`UserId`);
+  ADD KEY `UserId` (`UserId`),
+  ADD KEY `TypeId` (`TypeId`);
+
+ALTER TABLE `commenttypes`
+  ADD PRIMARY KEY (`CommentTypeId`);
 
 ALTER TABLE `companies`
   ADD PRIMARY KEY (`CompanyId`),
@@ -639,6 +719,9 @@ ALTER TABLE `bills`
 ALTER TABLE `comments`
   MODIFY `CommentId` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `commenttypes`
+  MODIFY `CommentTypeId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
 ALTER TABLE `companies`
   MODIFY `CompanyId` int(11) NOT NULL AUTO_INCREMENT;
 
@@ -683,8 +766,8 @@ ALTER TABLE `bills`
   ADD CONSTRAINT `fk_companies_bill` FOREIGN KEY (`CompanyId`) REFERENCES `companies` (`CompanyId`);
 
 ALTER TABLE `comments`
-  ADD CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`PostId`) REFERENCES `posts` (`PostId`),
-  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`UserId`) REFERENCES `users` (`UserId`);
+  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`UserId`) REFERENCES `users` (`UserId`),
+  ADD CONSTRAINT `comments_ibfk_3` FOREIGN KEY (`TypeId`) REFERENCES `commenttypes` (`CommentTypeId`);
 
 ALTER TABLE `companies`
   ADD CONSTRAINT `companies_ibfk_2` FOREIGN KEY (`UserId`) REFERENCES `users` (`UserId`);
