@@ -12,7 +12,7 @@ try {
     $comment->validate_body();
 
     if ($comment->status_is_empty()) {
-        if ($comment->has_access($decoded)) {
+        if ($comment->comment_has_access($decoded)) {
             if (!$comment->update()) {
                 http_response_code(400);
                 echo custom_array('Comment could not be updated');

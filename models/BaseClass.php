@@ -32,6 +32,25 @@ class BaseClass extends ValidateClass {
         return boolval($this->stmt->fetchColumn());
     }
 
+    public function comment_has_access($decoded = null) {
+        $name = '';
+        $this->query = 'SELECT EXISTS(SELECT CommentId FROM comments WHERE CommentId = ' . $this->comment_id;
+
+        if (is_null($decoded) || $decoded->isAdmin) {
+            $name = 'CommentExists';
+        } else {
+            $this->query .= ' AND UserId = ' . $this->user_id;
+            $name = 'UserHasComment';
+        }
+        
+        $this->query .= ') AS ' . $name;
+
+        $this->stmt = $this->prepare_stmt($this->query);
+        $this->execute();
+
+        return boolval($this->stmt->fetchColumn());
+    }
+
     public function all_params_null() {
         if ($this->is_active === null && $this->user_id === null && $this->is_paid === null && $this->is_late === null && $this->company_id === null && $this->date_due === null && $this->search === null) {
             return true;

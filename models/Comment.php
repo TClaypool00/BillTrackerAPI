@@ -60,25 +60,6 @@ class Comment extends BaseCommunityClass {
         return $this->stmt_executed();
     }
 
-    public function has_access($decoded) {
-        $name = '';
-        $this->query = 'SELECT EXISTS(SELECT CommentId FROM comments WHERE CommentId = ' . $this->comment_id;
-
-        if ($decoded->isAdmin) {
-            $name = 'CommentExists';
-        } else {
-            $this->query .= ' AND UserId = ' . $this->user_id;
-            $name = 'UserHasComment';
-        }
-        
-        $this->query .= ') AS ' . $name;
-
-        $this->stmt = $this->prepare_stmt($this->query);
-        $this->execute();
-
-        return boolval($this->stmt->fetchColumn());
-    }
-
     public function comment_array(bool $include_user_info = false, $message = null) {
         $comment_arr = array(
             'commentId' => $this->comment_id,

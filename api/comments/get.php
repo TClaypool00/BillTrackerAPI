@@ -8,7 +8,7 @@ try {
     $comment->comment_id = set_id();
     $comment->user_id = $decoded->userId;
 
-    if ($comment->has_access($decoded)) {
+    if ($comment->comment_has_access($decoded)) {
         $comment->get();
 
         http_response_code(200);
