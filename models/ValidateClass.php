@@ -148,6 +148,10 @@ class ValidateClass {
                 $value = $this->type_id;
                 $value_name = 'TypeId';
                 break;
+            case IdTypes::CompanyId:
+                $value = $this->company_id;
+                $value_name = 'CompanyId';
+                break;
             default:
             throw new TypeError($this->not_an_option);
         }
@@ -178,6 +182,9 @@ class ValidateClass {
                 break;
             case IdTypes::TypeId:
                 $this->type_id = $value;
+                break;
+            case IdTypes::CompanyId:
+                $this->company_id = $value;
                 break;
             default:
             throw new TypeError($this->not_an_option);
