@@ -13,9 +13,11 @@ class Proflie extends BaseClass {
     public function update() {
         $this->clean_data();
 
-        $this->stmt = $this->prepare_stmt("CALL updateProfile('{$this->profile_id}');");
+        $this->stmt = $this->prepare_stmt("CALL updProfile('{$this->user_id}', '{$this->savings}', '{$this->monthly_salary}');");
 
-        return $this->stmt_executed();
+        $this->execute();
+
+        $this->budget = doubleval($this->stmt->fetchColumn());
     }
 
     public function user_has_profile() {
@@ -41,11 +43,6 @@ class Proflie extends BaseClass {
             $this-> status = 'Monthly salary' . $this->cannot_be_null;
         }
 
-        if (is_null($this->budget)) {
-            $this->format_status();
-            $this->status .= 'Budget' . $this->cannot_be_null;
-        }
-
         if (is_null($this->savings)) {
             $this->format_status();
             $this->status .= 'Savings' . $this->cannot_be_null;
@@ -59,15 +56,6 @@ class Proflie extends BaseClass {
             } else {
                 $this->format_status();
                 $this->status .= 'Monthly salary must be a number';
-            }
-        }
-
-        if (!is_null($this->budget)) {
-            if (is_numeric($this->budget)) {
-                $this->budget = doubleval($this->budget);
-            } else {
-                $this->format_status();
-                $this->status .= 'Budget must be a nubmer';
             }
         }
 
@@ -89,24 +77,31 @@ class Proflie extends BaseClass {
             }
         }
 
-        if (doubleval($this->budget)) {
-            if ($this->budget <= 0) {
-                $this->format_status();
-                $this->status .= 'Budget must be a positive number';
-            }
-        }
-
         if (doubleval($this->savings)) {
-            if ($this->savings <= 0) {
+            if ($this->savings < 0) {
                 $this->format_status();
                 $this->status .= 'Savings must be a positive number';
             }
         }
     }
 
+    public function profile_array(string $message = '') {
+        $arr = array(
+            'profileId' => $this->profile_id,
+            'savings' => '$' . number_format($this->savings, 2),
+            'salary' => '$' . number_format($this->monthly_salary, 2),
+            'budget' => '$' . number_format($this->budget, 2)
+        );
+
+        if ($message !== '') {
+            $arr['message'] = $message;
+        }
+
+        return json_encode($arr);
+    }
+
     private function clean_data() {
         $this->monthly_salary = htmlspecialchars(strip_tags($this->monthly_salary));
-        $this->budget = htmlspecialchars(strip_tags($this->budget));
         $this->savings = htmlspecialchars(strip_tags($this->savings));
     }
 }
