@@ -3,7 +3,6 @@ include '../../partail_files/update_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_profile.php';
 include '../../partail_files/jwt_partial.php';
-include '../../models/IdTypes.php';
 
 try {
     $profile->profile_id = set_id();

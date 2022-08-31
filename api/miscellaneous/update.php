@@ -3,6 +3,7 @@ include '../../partail_files/update_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_miscellaneous.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/IdTypes.php';
 
 try {
     $misc->miscellaneous_id = set_id();
@@ -27,7 +28,7 @@ try {
 
     $misc->data_is_null();
     $misc->validate_data();
-    $misc->validate_company_id();
+    $misc->validate_id(IdTypes::CompanyId);
 
     if ($misc->status_is_empty()) {
         if (!$misc->user_has_company()) {

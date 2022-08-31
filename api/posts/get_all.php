@@ -4,6 +4,7 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_post.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
+include '../../models/IdTypes.php';
 
 try {
     if (get_isset('userId')) {
@@ -24,7 +25,7 @@ try {
         $post->date_posted = null;
     }
     
-    $post->validate_user_id(true);
+    $post->validate_id(IdTypes::UserId);
     $post->validate_boolean(BooleanTypes::IsEdited, true);
     
     if ($post->status_is_empty()) {

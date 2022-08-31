@@ -3,6 +3,7 @@ include '../../partail_files/get_all_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_company.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/IdTypes.php';
 
 try {
     if (get_isset('userId')) {
@@ -11,7 +12,7 @@ try {
         $company->user_id = null;
     }
     
-    $company->validate_user_id();
+    $company->validate_id(IdTypes::UserId);
     
     if ($company->status_is_empty()) {
         if ($decoded->userId === $company->user_id) {

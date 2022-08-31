@@ -3,6 +3,8 @@ include '../../partail_files/get_all_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_company.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/IdTypes.php';
+include '../../models/BooleanTypes.php';
 
 try {
     if (get_isset('userId')) {
@@ -24,8 +26,8 @@ try {
     }
     
     $company->format_data(true);
-    $company->validate_user_id();
-    $company->validate_is_active();
+    $company->validate_id(IdTypes::UserId, true);
+    $company->validate_boolean(BooleanTypes::IsActive, true);
     
     
     if (!$decoded->isAdmin) {

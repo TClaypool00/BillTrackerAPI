@@ -3,6 +3,8 @@ include '../../partail_files/update_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_loan.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/IdTypes.php';
+include '../../models/BooleanTypes.php';
 
 try {
     $loan->loan_id = set_id();
@@ -23,8 +25,8 @@ try {
 
     $loan->data_is_null();
     $loan->format_data();
-    $loan->validate_company_id();
-    $loan->validate_is_active();
+    $loan->validate_id(IdTypes::CompanyId);
+    $loan->validate_boolean(BooleanTypes::IsActive);
 
     if ($loan->status_is_empty()) {
         if (!$loan->user_has_company()) {

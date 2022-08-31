@@ -4,6 +4,7 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_bill.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
+include '../../models/IdTypes.php';
 
 define('MESSAGE', 'Bill has been updated');
 $bill->bill_id = set_id();
@@ -49,8 +50,8 @@ try {
     $bill->data_is_null();
     $bill->validate_bill_name();
     $bill->validate_amount_due();
-    $bill->validate_is_active();
-    $bill->validate_company_id();
+    $bill->validate_id(IdTypes::CompanyId);
+    $bill->validate_boolean(BooleanTypes::IsActive);
     $bill->validate_boolean(BooleanTypes::IncludeDropDown);
     $bill->validate_boolean(BooleanTypes::ReturnObject);
 

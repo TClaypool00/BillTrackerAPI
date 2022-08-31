@@ -31,9 +31,9 @@ try {
     $sub->validate_data();
     $sub->data_too_small();
     $sub->data_too_long();
-    $sub->validate_company_id();
+    $sub->validate_id(IdTypes::CompanyId);
     $sub->validate_date();
-    $sub->validate_is_active();
+    $sub->validate_boolean(BooleanTypes::IsActive);
     $sub->validate_boolean(BooleanTypes::IncludeDropDown);
 
     if ($sub->status_is_empty()) {

@@ -4,6 +4,7 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_loan.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
+include '../../models/IdTypes.php';
 
 try {
     define('MESSAGE', 'Loan has been created');
@@ -24,7 +25,7 @@ try {
     $loan->data_is_null();
     $loan->validate_date();
     $loan->format_data();
-    $loan->validate_company_id();
+    $loan->validate_id(IdTypes::CompanyId);
     $loan->validate_amount();
     $loan->validate_boolean(BooleanTypes::ReturnObject);
 

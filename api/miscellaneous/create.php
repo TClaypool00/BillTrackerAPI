@@ -3,6 +3,7 @@ include '../../partail_files/create_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_miscellaneous.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/IdTypes.php';
 
 try {
     define('MESSAGE', 'Miscellaneous has been added');
@@ -10,10 +11,11 @@ try {
     $misc->amount = $data->amount ?? null;
     $misc->company_id = $data->companyId ?? null;
     $misc->user_id = $decoded->userId;
+    $misc->date_added = $data->dateAdded ?? date('Y-m-d');
 
     $misc->data_is_null();
     $misc->validate_data();
-    $misc->validate_company_id();
+    $misc->validate_id(IdTypes::CompanyId);
     $misc->data_is_too_long();
 
     if ($misc->status_is_empty()) {

@@ -4,6 +4,7 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_miscellaneous.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
+include '../../models/IdTypes.php';
 
 try {
     $start_date = null;
@@ -39,8 +40,8 @@ try {
         $misc->show_currency = false;
     }
 
-    $misc->validate_user_id(true);
-    $misc->validate_company_id(true);
+    $misc->validate_id(IdTypes::UserId, true);
+    $misc->validate_id(IdTypes::CompanyId, true);
     $misc->validate_boolean(BooleanTypes::ShowCurrency, true);
 
     if ($misc->status_is_empty()) {

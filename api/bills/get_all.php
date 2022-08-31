@@ -4,6 +4,7 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_bill.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
+include '../../models/IdTypes.php';
 
 try {
     if (get_isset('userId')) {
@@ -48,9 +49,9 @@ try {
         $bill->search = null;
     }
     
-    $bill->validate_user_id(true);
-    $bill->validate_is_active(true);
-    $bill->validate_company_id(true);
+    $bill->validate_id(IdTypes::UserId, true);
+    $bill->validate_id(IdTypes::CompanyId, true);
+    $bill->validate_boolean(BooleanTypes::IsActive, true);
     $bill->validate_boolean(BooleanTypes::IsPaid, true);
     $bill->validate_boolean(BooleanTypes::IsLate, true);
     $bill->validate_boolean(BooleanTypes::ShowCurrency, true);

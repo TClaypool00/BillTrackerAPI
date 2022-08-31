@@ -4,6 +4,7 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_subscription.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
+include '../../models/IdTypes.php';
 
 try {
     if (get_isset('returnObject')) {
@@ -23,7 +24,7 @@ try {
     $sub->validate_data();
     $sub->data_too_small();
     $sub->data_too_long();
-    $sub->validate_company_id();
+    $sub->validate_id(IdTypes::CompanyId);
     $sub->validate_date();
     $sub->validate_boolean(BooleanTypes::ReturnObject);
 

@@ -3,6 +3,7 @@ include '../../partail_files/get_all_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_suggestion.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/IdTypes.php';
 
 try {
     if (get_isset('userId')) {
@@ -34,7 +35,7 @@ try {
         }
     }
 
-    $suggestion->validate_user_id(true);
+    $suggestion->validate_id(IdTypes::UserId, true);
     $suggestion->validate_option();
 
     if ($suggestion->status_is_empty()) {

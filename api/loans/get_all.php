@@ -4,6 +4,7 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_loan.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
+include '../../models/IdTypes.php';
 
 try {
     if (get_isset('userId')) {
@@ -42,9 +43,9 @@ try {
         $loan->show_currency = false;
     }
     
-    $loan->validate_user_id(true);
-    $loan->validate_company_id(true);
-    $loan->validate_is_active(true);
+    $loan->validate_id(IdTypes::CompanyId, true);
+    $loan->validate_id(IdTypes::UserId, true);
+    $loan->validate_boolean(BooleanTypes::IsActive, true);
     $loan->validate_boolean(BooleanTypes::IsLate, true);
     $loan->validate_boolean(BooleanTypes::IsPaid, true);
     $loan->validate_boolean(BooleanTypes::ShowCurrency);

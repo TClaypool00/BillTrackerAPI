@@ -3,6 +3,7 @@ include '../../partail_files/get_all_header.php';
 include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_all.php';
 include '../../partail_files/jwt_partial.php';
+include '../../models/IdTypes.php';
 
 try {
     if (get_isset('userId')) {
@@ -12,7 +13,7 @@ try {
     }
     
     
-    $all->validate_user_id();
+    $all->validate_id(IdTypes::UserId);
     
     if ($all->status_is_empty()) {
         $arr = array();
