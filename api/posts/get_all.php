@@ -24,8 +24,12 @@ try {
     } else {
         $post->date_posted = null;
     }
+
+    $post->search = get_isset('search') ? set_get_variable('search') : null;
+    $post->index = get_isset('index') ? set_get_variable('index') : null;
     
     $post->validate_id(IdTypes::UserId);
+    $post->validate_id(IdTypes::Index, true);
     $post->validate_boolean(BooleanTypes::IsEdited, true);
     
     if ($post->status_is_empty()) {

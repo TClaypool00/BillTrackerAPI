@@ -48,6 +48,13 @@ class Comment extends BaseCommunityClass {
             $this->additional_query .= 'IsEdited = ' . $this->is_edited;
         }
 
+        if (!is_null($this->search)) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'CommentBody LIKE %' . $this->comment_body . '%';
+        }
+
+        $this->limit_by_index();
+
         $this->stmt = $this->prepare_stmt($this->select_all . $this->additional_query);
         $this->execute();
 

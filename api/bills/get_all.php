@@ -49,8 +49,15 @@ try {
         $bill->search = null;
     }
     
+    if (get_isset('index')) {
+        $bill->index = set_get_variable('index');
+    } else {
+        $bill->index = null;
+    }
+
     $bill->validate_id(IdTypes::UserId, true);
     $bill->validate_id(IdTypes::CompanyId, true);
+    $bill->validate_id(IdTypes::Index, true);
     $bill->validate_boolean(BooleanTypes::IsActive, true);
     $bill->validate_boolean(BooleanTypes::IsPaid, true);
     $bill->validate_boolean(BooleanTypes::IsLate, true);

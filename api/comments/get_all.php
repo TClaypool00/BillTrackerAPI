@@ -26,6 +26,19 @@ try {
         $comment->type_id = null;
     }
 
+    if (get_isset('search')) {
+        $comment->search = set_get_variable('search');
+    } else {
+        $comment->search = null;
+    }
+
+    if (get_isset('index')) {
+        $comment->index = set_get_variable('index');
+    } else {
+        $comment->index = null;
+    }
+
+    $comment->validate_id(IdTypes::Index, true);
     $comment->validate_id(IdTypes::UserId, true);
     $comment->validate_id(IdTypes::ParentId, true);
     $comment->validate_id(IdTypes::TypeId, true);

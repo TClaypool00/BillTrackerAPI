@@ -58,6 +58,13 @@ class Company extends BaseClass {
             $this->additional_query .= ' IsActive = ' . $this->is_active;
         }
 
+        if (!is_null($this->search)) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'CompanyName LIKE %' . $this->company_name . '%';
+        }
+
+        $this->limit_by_index();
+
         $this->stmt = $this->prepare_stmt($this->select_all . $this->additional_query);
 
         $this->execute();

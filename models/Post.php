@@ -80,6 +80,13 @@ class Post extends BaseClass {
             }
         }
 
+        if (!is_null($this->search)) {
+            $this->additional_query_empty();
+            $this->additional_query .= 'PostBody LIKE %' . $this->search . '%';
+        }
+
+        $this->limit_by_index();
+
         $this->stmt = $this->prepare_stmt($this->select_all . $this->additional_query);
         $this->execute();
         return $this->stmt;

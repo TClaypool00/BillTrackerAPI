@@ -26,9 +26,14 @@ try {
     } else {
         $reply->is_edited = null;
     }
+
+    $reply->search = get_isset('search') ? set_get_variable('search') : null;
+    $reply->index = get_isset('index') ? set_get_variable('index') : null;
+
     $reply->validate_id(IdTypes::UserId, true);
     $reply->validate_id(IdTypes::CommentId, true);
     $reply->validate_boolean(BooleanTypes::IsEdited, true);
+    $reply->validate_id(IdTypes::Index, true);
 
     if ($reply->status_is_empty()) {
         if ($decoded->userId !== $reply->user_id && !$decoded->isAdmin) {

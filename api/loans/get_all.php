@@ -42,9 +42,13 @@ try {
     } else {
         $loan->show_currency = false;
     }
+
+    $loan->search = get_isset('search') ? set_get_variable('search') : null;
+    $loan->index = get_isset('index') ? set_get_variable('index') : null;
     
     $loan->validate_id(IdTypes::CompanyId, true);
     $loan->validate_id(IdTypes::UserId, true);
+    $loan->validate_id(IdTypes::Index, true);
     $loan->validate_boolean(BooleanTypes::IsActive, true);
     $loan->validate_boolean(BooleanTypes::IsLate, true);
     $loan->validate_boolean(BooleanTypes::IsPaid, true);

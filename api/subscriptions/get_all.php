@@ -48,6 +48,9 @@ try {
     } else {
         $sub->show_currency = false;
     }
+
+    $sub->search = get_isset('search') ? set_get_variable('search') : null;
+    $sub->index = get_isset('index') ? set_get_variable('index') : null;
     
     $sub->validate_date(true);
     $sub->validate_boolean(BooleanTypes::IsPaid, true);
@@ -56,6 +59,7 @@ try {
     $sub->validate_boolean(BooleanTypes::ShowCurrency);
     $sub->validate_id(IdTypes::CommentId, true);
     $sub->validate_id(IdTypes::UserId, true);
+    $sub->validate_id(IdTypes::Index, true);
     
     if ($sub->status_is_empty()) {
         if (!$decoded->isAdmin) {

@@ -40,6 +40,10 @@ try {
         $misc->show_currency = false;
     }
 
+    $misc->search = get_isset('search') ? set_get_variable('search') : null;
+    $misc->index = get_isset('index') ? set_get_variable('index') : null;
+
+    $misc->validate_id(IdTypes::Index, true);
     $misc->validate_id(IdTypes::UserId, true);
     $misc->validate_id(IdTypes::CompanyId, true);
     $misc->validate_boolean(BooleanTypes::ShowCurrency, true);

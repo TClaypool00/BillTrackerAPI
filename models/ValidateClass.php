@@ -24,6 +24,7 @@ class ValidateClass {
     public $search;
     public $comment_id;
     public $parent_id;
+    public $index;
 
     public $status = '';
     public static $all_params_null = 'Only admins can have all parameters be null';
@@ -152,6 +153,9 @@ class ValidateClass {
                 $value = $this->company_id;
                 $value_name = 'CompanyId';
                 break;
+            case IdTypes::Index:
+                $value = $this->index;
+                $value_name = 'Index';
             default:
             throw new TypeError($this->not_an_option);
         }
@@ -163,7 +167,12 @@ class ValidateClass {
             }
         } else {
             if (is_numeric($value)) {
-                $value = intval($value);
+                if ($value < 0) {
+                    $this->format_status();
+                    $this->status .= $value_name . ' must be greater than 0';
+                } else {
+                    $value = intval($value);
+                }
             } else {
                 $this->format_status();
                 $this->status .= $value_name . $this->must_be_num;
@@ -186,6 +195,8 @@ class ValidateClass {
             case IdTypes::CompanyId:
                 $this->company_id = $value;
                 break;
+            case IdTypes::Index:
+                $this->index = $value;
             default:
             throw new TypeError($this->not_an_option);
         }

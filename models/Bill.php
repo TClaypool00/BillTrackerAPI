@@ -86,6 +86,8 @@ class Bill extends BaseClass
             $this->additional_query .= "BillName LIKE '%" . $this->search . "%'";
         }
 
+        $this->limit_by_index();
+
         $this->stmt = $this->prepare_stmt($this->query . $this->additional_query);
 
         $this->execute();

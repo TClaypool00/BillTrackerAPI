@@ -1,7 +1,6 @@
 <?php
 class BaseClass extends ValidateClass {
     public $err_message = 'An error has occured. We apologize for the inconvience. We will fix it as soon as possible.';
-
     protected $conn;
     protected $stmt;
     protected $additional_query;
@@ -174,5 +173,11 @@ class BaseClass extends ValidateClass {
         $date = $this->date_from_string($date_as_string);
 
         return date_format($date, 'D M d, Y');
+    }
+
+    protected function limit_by_index() {
+        if (!is_null($this->index)) {
+            $this->additional_query .= 'LIMIT ' . ($this->index > 0 ? $this->index *= 10 : 0) . ', 10';
+        }
     }
 }

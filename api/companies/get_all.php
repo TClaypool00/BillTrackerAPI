@@ -24,10 +24,23 @@ try {
     } else {
         $company->type_id = null;
     }
+
+    if (get_isset('search')) {
+        $company->search = set_get_variable('search');
+    } else {
+        $company->search = null;
+    }
+
+    if (get_isset('index')) {
+        $company->index = set_get_variable('index');
+    } else {
+        $company->index = null;
+    }
     
     $company->format_data(true);
     $company->validate_id(IdTypes::UserId, true);
     $company->validate_boolean(BooleanTypes::IsActive, true);
+    $company->validate_id(IdTypes::Index, true);
     
     
     if (!$decoded->isAdmin) {

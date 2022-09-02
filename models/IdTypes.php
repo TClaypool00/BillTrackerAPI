@@ -5,4 +5,5 @@ enum IdTypes {
     case TypeId;
     case ParentId;
     case CompanyId;
+    case Index;
 }

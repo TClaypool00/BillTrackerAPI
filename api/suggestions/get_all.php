@@ -24,6 +24,9 @@ try {
         $suggestion->approved_denied_by = 0;
     }
 
+    $suggestion->search = get_isset('search') ? set_get_variable('search') : null;
+    $suggestion->index = get_isset('index') ? set_get_variable('index') : null;
+
     if (!$decoded->isAdmin && $suggestion->user_id === 0) {
         if ($suggestion->approved_denied === '' || $suggestion->approved_denied_by === 0) {
             http_response_code(403);
