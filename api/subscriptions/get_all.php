@@ -123,7 +123,7 @@ try {
         http_response_code(400);
         echo custom_array($sub->status);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $sub->createError($e);
     echo custom_array($sub->err_message);

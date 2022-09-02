@@ -23,7 +23,7 @@ try {
         http_response_code(404);
         echo custom_array(Post::$post_does_not_exist);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $post->createError($e);
     echo custom_array($post->err_message);

@@ -22,7 +22,7 @@ try {
     $suggestion->get();
 
     echo $suggestion->suggestion_array('', $decoded->userId !== $suggestion->user_id);
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $suggestion->createError($e);
     echo custom_array($suggestion->err_message);

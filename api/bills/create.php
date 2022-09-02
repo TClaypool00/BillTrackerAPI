@@ -58,7 +58,7 @@ try {
         http_response_code(400);
         echo custom_array($bill->status);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $bill->createError($e);
     echo custom_array($bill->err_message);

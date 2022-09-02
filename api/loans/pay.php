@@ -31,7 +31,7 @@ try {
         http_response_code(404);
         echo custom_array('Loan with an id of ' . $loan->loan_id . ' does exists') ;
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $loan->createError($e);
     echo custom_array($loan->err_message);

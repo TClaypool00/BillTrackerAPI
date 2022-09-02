@@ -30,7 +30,7 @@ try {
         http_response_code(400);
         echo custom_array($company->status);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $company->createError($e);
     echo custom_array($company->err_message);

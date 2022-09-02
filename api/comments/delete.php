@@ -8,7 +8,7 @@ try {
     $comment->comment_id = set_id();
     $comment->user_id = $decoded->userId;
 
-    if ($comment->has_access($decoded)) {
+    if ($comment->comment_has_access($decoded)) {
         if ($comment->delete()) {
             http_response_code(200);
             echo custom_array('Comment has been deleted');

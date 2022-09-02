@@ -40,7 +40,7 @@ try {
         http_response_code(403);
         echo custom_array(User::$not_auth);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $user->createError($e);
     echo custom_array($user->err_message);

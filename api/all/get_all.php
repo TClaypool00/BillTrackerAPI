@@ -83,7 +83,7 @@ try {
         http_response_code(400);
         echo custom_array($all->status);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     echo custom_array($e->getMessage());
 }

@@ -46,7 +46,7 @@ try {
         http_response_code(400);
         echo custom_array($misc->status);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $misc->createError($e);
     echo custom_array($misc->err_message);

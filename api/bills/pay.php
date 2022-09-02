@@ -31,7 +31,7 @@ try {
         http_response_code(404);
         echo custom_array('Bill with an id of ' . $bill->bill_id . ' could not be found.');
     }
-} catch(Exception $e) {
+} catch(Throwable $e) {
     http_response_code(500);
     $bill->createError($e);
     echo custom_array($bill->err_message);

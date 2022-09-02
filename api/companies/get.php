@@ -33,7 +33,7 @@ try {
         http_response_code(404);
         echo custom_array('No company found.');
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     $company->createError($e);
     echo custom_array($company->err_message);
