@@ -24,6 +24,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `delComment` (IN `comment_id` INT)  
     COMMIT;
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delError` (IN `error_id` INT(11))   DELETE FROM error WHERE ErrorId = error_id$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `delMisc` (IN `id` INT(11))   DELETE FROM miscellaneous where MiscellaneousId = id$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `delReply` (IN `reply_id` INT)   DELETE FROM replies WHERE ReplyId = reply_id$$
@@ -92,8 +94,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insError` (IN `error_message` VARCH
     END;
     
     START TRANSACTION;
-    	IF EXISTS(SELECT * FROM error WHERE ErrorCode = err_code) THEN
-        	SET error_id = (SELECT ErrorId FROM error WHERE ErrorCode = err_code);
+    	IF EXISTS(SELECT * FROM error WHERE ErrorMessage = error_message) THEN
+        	SET error_id = (SELECT ErrorId FROM error WHERE ErrorMessage = err_code);
             SELECT FALSE AS FirstError;
         ELSE        	
         	INSERT INTO error(ErrorMessage, ErrorCode, ErrorLine, StackTrace)
@@ -113,7 +115,12 @@ END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(255), IN `monthly_amt_due` DECIMAL(11,2), IN `total_loan_amt` DECIMAL(11,2), IN `remaining_amt` DECIMAL(11,2), IN `company_id` INT(11), IN `date_due` DATE)   BEGIN
 	DECLARE loanId INT;
-
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+    START TRANSACTION;
 	INSERT INTO loans (LoanName, MonthlyAmountDue, TotalAmountDue, RemainingAmount, CompanyId)
 	VALUES (loan_name, monthly_amt_due, total_loan_amt, remaining_amt, company_id);
     
@@ -121,6 +128,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(25
     
     INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
     VALUES (loanId, 2, date_due);
+    
+    SELECT loanId;
+    COMMIT;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11))   BEGIN
@@ -133,6 +143,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insMisc` (IN `name` VARCHAR(255), I
     
     INSERT INTO paymenthistory (ExpenseId, TypeId)
     VALUES (miscId, 4);
+    
+    SELECT miscId;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insPaymentHistory` (IN `expense_id` INT(11), IN `type_id` INT(11))   INSERT INTO paymenthistory (ExpenseId, TypeId)
@@ -230,10 +242,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updApproveDenySuggestion` (IN `sugg
     COMMIT;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateProfile` (IN `monthly_salary` DOUBLE(11,2), IN `budget` DOUBLE(11,2), IN `saving` DOUBLE(11,2), IN `user_id` INT(11))   UPDATE userprofile
-SET MonthlySalary = monthly_salary, Budget = budget, Savings = saving
-WHERE UserId = user_id$$
-
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_active` BOOLEAN, IN `bill_id` INT(11))   BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -275,6 +283,29 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updMisc` (IN `name` VARCHAR(255), I
 SET Name = name, Amount = amount, CompanyId = company_id
 WHERE MiscellaneousId = id$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updNewDates` ()   BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+   	CREATE TEMPORARY TABLE NewDates
+    SELECT * FROM paymenthistory h
+    WHERE (MONTH(h.DateDue) = MONTH(NOW()) AND YEAR(h.DateDue) = YEAR(NOW()));
+    
+    START TRANSACTION;
+    
+    UPDATE NewDates
+    SET PaymentId = NULL, DateDue = DATE_ADD(DateDue, INTERVAL 1 month);
+    
+    INSERT INTO paymenthistory
+    SELECT * FROM NewDates;
+    
+   	DROP TEMPORARY TABLE IF EXISTS NewDates;
+    
+    COMMIT;
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updPayExpense` (IN `expense_id` INT(11), IN `type_id` INT(11))   BEGIN
     UPDATE paymenthistory
     SET IsPaid = TRUE, DatePaid = NOW()
@@ -304,6 +335,44 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updPost` (IN `post_body` VARCHAR(25
     COMMIT;
     
     
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updProfile` (IN `user_id` INT(11), IN `savings` DECIMAL(11,2), IN `salary` VARCHAR(500))   BEGIN
+DECLARE bill_total DECIMAL(15, 2);
+DECLARE sub_total DECIMAL(15, 2);
+DECLARE loan_total DECIMAL(15, 2);
+DECLARE misc_total DECIMAL(15, 2);
+
+DECLARE EXIT HANDLER FOR SQLEXCEPTION
+BEGIN
+    ROLLBACK;
+END;
+
+START TRANSACTION;
+SET bill_total = (SELECT SUM(b.AmountDue)
+FROM bills b
+WHERE b.CompanyId IN (SELECT CompanyId FROM companies WHERE UserId = user_id));
+
+SET sub_total = (SELECT SUM(s.AmountDue)
+FROM subscriptions s
+WHERE s.CompanyId IN (SELECT CompanyId FROM companies WHERE UserId = user_id));
+
+SET loan_total = (SELECT SUM(l.MonthlyAmountDue)
+FROM loans l
+WHERE l.CompanyId IN (SELECT CompanyId FROM companies WHERE UserId = user_id));
+
+SET misc_total = (SELECT SUM(m.Amount)
+FROM miscellaneous m
+WHERE m.CompanyId IN (SELECT CompanyId FROM companies WHERE UserId = user_id) AND (MONTH(m.DateAdded) = MONTH(NOW()) AND YEAR(m.DateAdded) = YEAR(NOW())));
+
+UPDATE userprofile
+SET Budget = bill_total + sub_total + loan_total + misc_total, MonthlySalary = salary, Savings = savings
+WHERE UserId = user_id;
+
+SELECT P.Budget FROM userprofile p WHERE P.UserId = user_id;
+
+COMMIT;
+
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updReply` (IN `reply_body` VARCHAR(255), IN `reply_id` INT)   UPDATE replies
@@ -514,6 +583,14 @@ CREATE TABLE `vwcompanies` (
 ,`FirstName` varchar(255)
 ,`LastName` varchar(255)
 );
+CREATE TABLE `vwerrors` (
+`ErrorId` int(11)
+,`ErrorMessage` text
+,`ErrorCode` int(11)
+,`ErrorLine` int(11)
+,`StackTrace` text
+,`UsersCount` bigint(21)
+);
 CREATE TABLE `vwloans` (
 `LoanId` int(11)
 ,`LoanName` varchar(255)
@@ -622,6 +699,9 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 DROP TABLE IF EXISTS `vwcompanies`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwcompanies`  AS SELECT `c`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `c`.`IsActive` AS `IsActive`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (`companies` `c` join `users` `u` on(`u`.`UserId` = `c`.`UserId`))  ;
+DROP TABLE IF EXISTS `vwerrors`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwerrors`  AS SELECT `e`.`ErrorId` AS `ErrorId`, `e`.`ErrorMessage` AS `ErrorMessage`, `e`.`ErrorCode` AS `ErrorCode`, `e`.`ErrorLine` AS `ErrorLine`, `e`.`StackTrace` AS `StackTrace`, count(`ue`.`ErrorId`) AS `UsersCount` FROM (`error` `e` join `usererror` `ue` on(`e`.`ErrorId` = `ue`.`ErrorId`))  ;
 DROP TABLE IF EXISTS `vwloans`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vwloans`  AS SELECT `l`.`LoanId` AS `LoanId`, `l`.`LoanName` AS `LoanName`, `l`.`IsActive` AS `IsActive`, `l`.`MonthlyAmountDue` AS `MonthlyAmountDue`, `l`.`TotalAmountDue` AS `TotalAmountDue`, `l`.`RemainingAmount` AS `RemainingAmount`, `h`.`DateDue` AS `DateDue`, `h`.`DatePaid` AS `DatePaid`, `h`.`IsPaid` AS `IsPaid`, `h`.`IsLate` AS `IsLate`, `l`.`CompanyId` AS `CompanyId`, `c`.`CompanyName` AS `CompanyName`, `c`.`UserId` AS `UserId`, `u`.`FirstName` AS `FirstName`, `u`.`LastName` AS `LastName` FROM (((`loans` `l` join `companies` `c` on(`c`.`CompanyId` = `l`.`CompanyId`)) join `users` `u` on(`u`.`UserId` = `c`.`UserId`)) join `paymenthistory` `h` on(`h`.`ExpenseId` = `l`.`LoanId` and `h`.`TypeId` = 2 and month(`h`.`DateDue`) = month(current_timestamp()) and year(`h`.`DateDue`) = year(current_timestamp())))  ;
@@ -802,6 +882,11 @@ ALTER TABLE `usererror`
 
 ALTER TABLE `userprofile`
   ADD CONSTRAINT `userprofile_ibfk_1` FOREIGN KEY (`UserId`) REFERENCES `users` (`UserId`);
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` EVENT `create_new_date_dues` ON SCHEDULE EVERY 1 MONTH STARTS '2022-08-31 23:30:00' ON COMPLETION PRESERVE ENABLE DO CALL updNewDates()$$
+
+DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
