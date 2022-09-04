@@ -101,10 +101,20 @@ class BaseClass extends ValidateClass {
         $this->execute();
     }
 
-    public function format_date_to_string(string $date_as_string) {
-        $date = $this->date_from_string($date_as_string);
+    public function format_date_to_string($date_as_string) {
+        if ($date_as_string != null) {
+            $date = $this->date_from_string($date_as_string);
 
-        return date_format($date, 'D M d, Y g:i a');
+            return date_format($date, 'D M d, Y g:i a');
+        }
+    }
+
+    public function format_date($date_as_string) {
+        if ($date_as_string !== null) {
+            $date = $this->date_from_string($date_as_string);
+
+            return date_format($date, 'D M d, Y');
+        }
     }
 
     protected function stmt_executed() {
@@ -167,12 +177,6 @@ class BaseClass extends ValidateClass {
 
     protected function date_from_string(string $date) {
         return date_create($date);
-    }
-
-    protected function format_date(string $date_as_string) {
-        $date = $this->date_from_string($date_as_string);
-
-        return date_format($date, 'D M d, Y');
     }
 
     protected function limit_by_index() {
