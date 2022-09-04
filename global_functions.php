@@ -35,5 +35,5 @@ function set_id() {
 }
 
 function currency($value) {
-    return '$' . $value;
+    return '$' . number_format($value, 2);
 }
