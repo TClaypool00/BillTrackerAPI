@@ -5,6 +5,7 @@ include '../../partail_files/object_partial_files/new_bill.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
 include '../../models/IdTypes.php';
+include '../../models/DateTypes.php';
 
 try {
     define('MESSAGE', 'Bill has been created');
@@ -30,7 +31,7 @@ try {
     $bill->validate_bill_name();
     $bill->validate_amount_due();
     $bill->validate_id(IdTypes::CompanyId);
-    $bill->validate_date();
+    $bill->validate_date(DateType::DateDue);
     $bill->validate_boolean(BooleanTypes::ReturnObject);
     $bill->validate_boolean(BooleanTypes::IncludeDropDown);
 

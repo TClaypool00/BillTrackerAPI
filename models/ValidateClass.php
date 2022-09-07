@@ -25,6 +25,10 @@ class ValidateClass {
     public $comment_id;
     public $parent_id;
     public $index;
+    public $date_added;
+    public $date_posted;
+    public $start_date;
+    public $end_date;
 
     public $status = '';
     public static $all_params_null = 'Only admins can have all parameters be null';
@@ -241,22 +245,70 @@ class ValidateClass {
         $this->user_last_name = substr($this->user_last_name, 0, 1) . '.';
     }
 
-    public function validate_date($can_be_null = false, $can_be_in_past = false) {
-        if ($this->date_due === null) {
+    public function validate_date(DateType $date, $can_be_null = false, $can_be_in_past = false) {
+        $value = null;
+        $value_name = '';
+
+        switch($date) {
+            case DateType::DateDue:
+                $value = $this->date_due;
+                $value_name = 'Date due';
+                break;
+            case DateType::DateAdded:
+                $value = $this->date_added;
+                $value_name = 'Date added';
+                break;
+            case DateType::DatePosted:
+                $value = $this->date_posted;
+                $value_name = 'Date posted';
+                break;
+            case DateType::StartDate:
+                $value = $this->start_date;
+                $value_name = 'Start date';
+                break;
+            case DateType::EndDate:
+                $value = $this->end_date;
+                $value_name = 'End date';
+                break;
+            default:
+                throw new TypeError($this->not_an_option);
+        }
+
+        if ($value === null) {
             if (!$can_be_null) {
                 $this->format_status();
-                $this->status .= 'Date due cannot be null';
+                $this->status .= $value_name . ' cannot be null';
             }
-        } else if($this->is_date($this->date_due)) {
-            $this->create_time_stamp($this->date_due);
-            $this->date_due = $this->convert_string_to_date();
-            if (!$can_be_in_past && ($this->date_due < strtotime(date('Y-m-d')))) {
+        } else if($this->is_date($value)) {
+            $this->create_time_stamp($value);
+            $value = $this->convert_string_to_date();
+            if (!$can_be_in_past && strtotime(date('Y-m-d', strtotime($value))) < strtotime(date('Y-m-01'))) {
                 $this->format_status();
-                $this->status .= 'Date due cannot be in the past';
+                $this->status .= $value_name . ' cannot be in the past';
             }
         } else {
             $this->format_status();
-            $this->status .= 'Date due is not a valid date';
+            $this->status .= $value_name . ' is not a valid date';
+        }
+
+        switch($date) {
+            case DateType::DateDue:
+                $this->date_due = $value;
+                break;
+            case DateType::DateAdded:
+                $this->date_added = $value;
+                break;
+            case DateType::DatePosted:
+                $this->date_posted = $value;
+                break;
+            case DateType::StartDate:
+                $this->start_date = $value;
+                break;
+            case DateType::EndDate:
+                $this->end_date = $value;
+                break;
+            default:
+                throw new TypeError($this->not_an_option);
         }
     }
 

@@ -4,6 +4,7 @@ include '../../global_functions.php';
 include '../../partail_files/object_partial_files/new_miscellaneous.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/IdTypes.php';
+include '../../models/DateTypes.php';
 
 try {
     define('MESSAGE', 'Miscellaneous has been added');
@@ -17,6 +18,7 @@ try {
     $misc->validate_data();
     $misc->validate_id(IdTypes::CompanyId);
     $misc->data_is_too_long();
+    $misc->validate_date(DateType::DateAdded);
 
     if ($misc->status_is_empty()) {
         if (!$misc->user_has_company()) {

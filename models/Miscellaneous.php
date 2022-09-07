@@ -3,7 +3,6 @@ class Miscellaneous extends BaseClass {
     public $miscellaneous_id;
     public $name;
     public $amount;
-    public $date_added;
 
     public static $not_has_access = 'You do not have access to this Miscellaneous';
 

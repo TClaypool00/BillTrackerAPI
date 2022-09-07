@@ -5,6 +5,7 @@ include '../../partail_files/object_partial_files/new_subscription.php';
 include '../../partail_files/jwt_partial.php';
 include '../../models/BooleanTypes.php';
 include '../../models/IdTypes.php';
+include '../../models/DateTypes.php';
 
 try {
     if (get_isset('returnObject')) {
@@ -25,7 +26,7 @@ try {
     $sub->data_too_small();
     $sub->data_too_long();
     $sub->validate_id(IdTypes::CompanyId);
-    $sub->validate_date();
+    $sub->validate_date(DateType::DateDue);
     $sub->validate_boolean(BooleanTypes::ReturnObject);
 
     if ($sub->status_is_empty()) {
