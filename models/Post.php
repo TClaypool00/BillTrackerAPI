@@ -100,7 +100,7 @@ class Post extends BaseClass {
             'isEdited' => boolval($this->is_edited)
         );
 
-        if (!$user_info) {
+        if ($user_info) {
             $post_arr['UserId'] = $this->user_id;
             $post_arr['FirstName'] = $this->user_first_name;
             $post_arr['LastName'] = $this->user_last_name;
@@ -162,5 +162,8 @@ class Post extends BaseClass {
 
         $this->date_posted = $this->format_date_to_string($this->row_value('DatePosted'));
         $this->is_edited = boolval($this->row_value('IsEdited'));
+        $this->user_first_name = $this->row_value('FirstName');
+        $this->user_last_name = $this->row_value('LastName');
+        $this->first_index_string();
     }
 }
