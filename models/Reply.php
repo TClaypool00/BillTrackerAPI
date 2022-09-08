@@ -128,7 +128,7 @@ class Reply extends BaseCommunityClass {
 
         if ($include_user) {
             $reply_arr['userId'] = $this->user_id;
-            $reply_arr['firstNamee'] = $this->user_first_name;
+            $reply_arr['firstName'] = $this->user_first_name;
             $reply_arr['lastName'] = $this->user_last_name;
         }
 
