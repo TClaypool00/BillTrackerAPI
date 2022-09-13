@@ -88,6 +88,7 @@ class BaseClass extends ValidateClass {
     }
 
     public function createError(Throwable $e) {
+        $this->stmt->closeCursor();
         $this->error_message = $e->getMessage();
         $this->stack_trace = $e->getTraceAsString();
 

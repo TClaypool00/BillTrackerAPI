@@ -202,6 +202,7 @@ class ValidateClass {
                 break;
             case IdTypes::Index:
                 $this->index = $value;
+                break;
             default:
             throw new TypeError($this->not_an_option);
         }

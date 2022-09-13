@@ -37,3 +37,11 @@ function set_id() {
 function currency($value) {
     return '$' . number_format($value, 2);
 }
+
+function first_index(string $value) {
+    return $value[0] . '.';
+}
+
+function same_user_id($decoded, int $user_id) {
+    return $decoded->userId === $user_id;
+}
