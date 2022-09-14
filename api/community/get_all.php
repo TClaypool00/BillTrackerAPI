@@ -78,7 +78,7 @@ try {
                         'datePosted' => $comm->format_date_to_string($ReplyDatePosted),
                         'userId' => $ReplyUserId,
                         'firstName' => $ReplyFirstName,
-                        'lastName' => $ReplyLastName
+                        'lastName' => first_index($ReplyLastName)
                     );
 
                     array_push($posts_arr[$counter]['comments'][$comment_counter]['replies'], $reply_item);
