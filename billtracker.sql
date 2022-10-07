@@ -43,6 +43,9 @@ END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(15,2), IN `company_id` INT(11), IN `date_due` DATE, IN `return_object` BOOLEAN)   BEGIN
 	DECLARE billId INT;
+    DECLARE user_id INT;
+    DECLARE salary DECIMAL(11, 2);
+    DECLARE budget DECIMAL(11, 2);
     
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -61,6 +64,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insBill` (IN `bill_name` VARCHAR(25
        	IF return_object THEN
         	SELECT BillId, UserId, CompanyName, FirstName, LastName FROM vwbills WHERE BillId = billId;
         END IF;
+        
+        SET user_id = (SELECT c.UserId FROM companies c WHERE c.CompanyId = company_id);
+        
+        SELECT p.MonthlySalary, p.Budget
+        INTO salary, budget
+        FROM userprofile p
+        WHERE p.UserId = user_id;
+        
+        IF salary > 0 AND budget > 0 THEN
+        	UPDATE userprofile
+            SET Budget = Budget - amount_due
+            WHERE UserId = user_id;
+        END IF;
+        
+        SELECT billId;
         
         COMMIT;
 END$$
@@ -81,8 +99,22 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insComment` (IN `comment_body` VARC
     COMMIT;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insCompany` (IN `company_name` VARCHAR(255), IN `user_id` INT(11))   INSERT INTO companies (CompanyName, UserId)
-VALUES (company_name, user_id)$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insCompany` (IN `company_name` VARCHAR(255), IN `user_id` INT(11))   BEGIN
+	DECLARE company_id INT;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+	
+    START TRANSACTION;
+	INSERT INTO companies (CompanyName, UserId)
+	VALUES (company_name, user_id);
+    
+    SET company_id = LAST_INSERT_ID();
+    
+    SELECT company_id;
+    COMMIT;
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insError` (IN `error_message` VARCHAR(255), IN `err_code` INT(11), IN `err_line` INT(11), IN `stack_trace` TEXT, IN `user_id` INT(11))   BEGIN
 	DECLARE error_id INT;
@@ -115,6 +147,11 @@ END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(255), IN `monthly_amt_due` DECIMAL(11,2), IN `total_loan_amt` DECIMAL(11,2), IN `remaining_amt` DECIMAL(11,2), IN `company_id` INT(11), IN `date_due` DATE)   BEGIN
 	DECLARE loanId INT;
+    DECLARE billId INT;
+    DECLARE user_id INT;
+    DECLARE salary DECIMAL(11, 2);
+    DECLARE budget DECIMAL(11, 2);
+    
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
     	ROLLBACK;
@@ -129,12 +166,27 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insLoan` (IN `loan_name` VARCHAR(25
     INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
     VALUES (loanId, 2, date_due);
     
+    SET user_id = (SELECT c.UserId FROM companies c WHERE c.CompanyId = company_id);
+        
+    SELECT p.MonthlySalary, p.Budget
+    INTO salary, budget
+    FROM userprofile p
+    WHERE p.UserId = user_id;
+
+    IF salary > 0 AND budget > 0 THEN
+        UPDATE userprofile
+        SET Budget = Budget - amount_due
+        WHERE UserId = user_id;
+    END IF;
+    
     SELECT loanId;
+    
     COMMIT;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11))   BEGIN
 	DECLARE miscId INT;
+    DECLARE user_id INT;
 
 	INSERT INTO miscellaneous (Name, Amount, CompanyId)
 	VALUES (name, amount, company_id);
@@ -144,11 +196,14 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insMisc` (IN `name` VARCHAR(255), I
     INSERT INTO paymenthistory (ExpenseId, TypeId)
     VALUES (miscId, 4);
     
+    SET user_id = (SELECT c.UserId FROM companies c WHERE c.CompanyId = company_id);
+    
+    UPDATE userprofile
+    SET Budget = Budget - amount_due
+    WHERE UserId = user_id;
+    
     SELECT miscId;
 END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insPaymentHistory` (IN `expense_id` INT(11), IN `type_id` INT(11))   INSERT INTO paymenthistory (ExpenseId, TypeId)
-VALUES (expense_id, type_id)$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insPost` (IN `post_body` VARCHAR(255), IN `user_id` INT)   BEGIN
 	DECLARE post_id INT;
@@ -186,6 +241,9 @@ END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `company_id` INT)   BEGIN
 	DECLARE subId INT;
+    DECLARE user_id INT;
+    DECLARE salary DECIMAL(11, 2);
+    DECLARE budget DECIMAL(11, 2);
 
 	INSERT INTO subscriptions (Name, AmountDue, CompanyId)
     VALUES (name, amount_due, company_id);
@@ -194,6 +252,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `insSub` (IN `name` VARCHAR(255), IN
     
     INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
     VALUES (subId, 3, due_date);
+    
+    SET user_id = (SELECT c.UserId FROM companies c WHERE c.CompanyId = company_id);
+        
+    SELECT p.MonthlySalary, p.Budget
+    INTO salary, budget
+    FROM userprofile p
+    WHERE p.UserId = user_id;
+        
+    IF salary > 0 AND budget > 0 THEN
+        UPDATE userprofile
+        SET Budget = Budget - amount_due
+        WHERE UserId = user_id;
+    END IF;
     
     SELECT subId;
 END$$
@@ -242,16 +313,61 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updApproveDenySuggestion` (IN `sugg
     COMMIT;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_active` BOOLEAN, IN `bill_id` INT(11))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updBill` (IN `bill_name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `is_active` BOOLEAN, IN `bill_id` INT(11), IN `date_due` DATE, IN `company_id` INT)   BEGIN
+	DECLARE old_amount_due DECIMAL(11, 2);
+    DECLARE salary DECIMAL(11, 2);
+    DECLARE budget DECIMAL(11, 2);
+    DECLARE old_is_active BOOLEAN;
+    DECLARE old_date_due DATE;
+    DECLARE user_id INT;
+
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
     	ROLLBACK;
     END;
 
 	START TRANSACTION;
+    SELECT b.AmountDue, b.IsActive
+    INTO old_amount_due, old_is_active
+    FROM bills b
+    WHERE b.BillId = bill_id;    
+    
+    SET old_date_due = (SELECT h.DateDue FROM paymenthistory h WHERE h.ExpenseId = bill_id AND h.TypeId = 1 AND MONTH(h.DateDue) = MONTH(NOW()) AND YEAR(h.DateDue) = YEAR(NOW()));
+    
+    IF (!old_is_active AND is_active) OR old_date_due IS NULL THEN
+    	INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
+    	VALUES (bill_id, 1, date_due);
+    END IF;
+    
+    IF old_date_due IS NOT NULL AND old_date_due != date_due THEN
+    	UPDATE paymenthistory h
+        SET h.DateDue = date_due
+        WHERE h.ExpenseId = bill_id AND h.TypeId = 1 AND MONTH(h.DateDue) = MONTH(NOW()) AND YEAR(h.DateDue) = YEAR(NOW());
+    END IF;
+    
+    SET user_id = (SELECT c.UserId FROM companies c WHERE c.CompanyId = company_id);
+    
+    SELECT p.MonthlySalary, p.Budget
+    INTO salary, budget
+    FROM userprofile p
+    WHERE p.UserId = user_id;
+        
+    IF salary > 0 AND budget > 0 THEN
+    	IF old_amount_due > amount_due THEN
+        	UPDATE userprofile
+        	SET Budget = Budget + (old_amount_due - amount_due)
+        	WHERE UserId = user_id;
+        ELSEIF amount_due > old_amount_due THEN
+        	UPDATE userprofile
+        	SET Budget = Budget - (amount_due - old_amount_due)
+        	WHERE UserId = user_id;
+        END IF;
+    END IF;
+    
 	UPDATE bills
-	SET BillName = bill_name, AmountDue = amount_due, IsActive = is_active
+	SET BillName = bill_name, AmountDue = amount_due, IsActive = is_active, CompanyId = company_id
 	WHERE BillId = bill_id;
+    
     
     SELECT UserId, FirstName, LastName FROM vwbills WHERE BillId = bill_id;
     
@@ -275,13 +391,92 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updCompanyName` (IN `company_name` 
 SET CompanyName = company_name
 WHERE CompanyId = company_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updLoan` (IN `loan_name` VARCHAR(255), IN `is_active` BOOLEAN, IN `monthly_amt_due` DECIMAL(11,2), IN `total_amt_due` DECIMAL(11,2), IN `remaining_amt_due` DECIMAL(11,2), IN `loan_id` INT(11))   UPDATE loans
-SET IsActive = is_active, MonthlyAmountDue = monthly_amt_due, TotalAmountDue = total_amt_due, RemainingAmount = remaining_amt_due
-WHERE LoanId = loan_id$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updLoan` (IN `loan_name` VARCHAR(255), IN `is_active` BOOLEAN, IN `monthly_amt_due` DECIMAL(11,2), IN `total_amt_due` DECIMAL(11,2), IN `remaining_amt_due` DECIMAL(11,2), IN `loan_id` INT(11), IN `date_due` DATE, IN `company_id` INT)   BEGIN
+	DECLARE old_amount_due DECIMAL(11, 2);
+    DECLARE salary DECIMAL(11, 2);
+    DECLARE budget DECIMAL(11, 2);
+    DECLARE old_is_active BOOLEAN;
+    DECLARE old_date_due DATE;
+    DECLARE user_id INT;
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11), IN `id` INT(11))   UPDATE miscellaneous
-SET Name = name, Amount = amount, CompanyId = company_id
-WHERE MiscellaneousId = id$$
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+
+	START TRANSACTION;
+    SELECT l.MonthlyAmountDue, l.IsActive
+    INTO old_amount_due, old_is_active
+    FROM loans l
+    WHERE l.LoanId = loan_id;
+    
+    SET old_date_due = (SELECT h.DateDue FROM paymenthistory h WHERE h.ExpenseId = loan_id AND h.TypeId = 2 AND MONTH(h.DateDue) = MONTH(NOW()) AND YEAR(h.DateDue) = YEAR(NOW()));
+    
+    IF (!old_is_active AND is_active) OR old_date_due IS NULL THEN
+    	INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
+    	VALUES (loan_id, 2, date_due);
+    END IF;
+    
+    IF old_date_due IS NOT NULL AND old_date_due != date_due THEN
+    	UPDATE paymenthistory h
+        SET h.DateDue = date_due
+        WHERE h.ExpenseId = loan_id AND h.TypeId = 2 AND MONTH(h.DateDue) = MONTH(NOW()) AND YEAR(h.DateDue) = YEAR(NOW());
+    END IF;
+    
+    SET user_id = (SELECT c.UserId FROM companies c WHERE c.CompanyId = company_id);
+    
+    SELECT p.MonthlySalary, p.Budget
+    INTO salary, budget
+    FROM userprofile p
+    WHERE p.UserId = user_id;
+        
+    IF salary > 0 AND budget > 0 THEN
+    	IF old_amount_due > monthly_amt_due THEN
+        	UPDATE userprofile
+        	SET Budget = Budget + (old_amount_due - monthly_amt_due)
+        	WHERE UserId = user_id;
+        ELSEIF monthly_amt_due > old_amount_due THEN
+        	UPDATE userprofile
+        	SET Budget = Budget - (monthly_amt_due - old_amount_due)
+        	WHERE UserId = user_id;
+        END IF;
+    END IF;
+    
+	UPDATE loans
+	SET IsActive = is_active, MonthlyAmountDue = monthly_amt_due, TotalAmountDue = total_amt_due, RemainingAmount = remaining_amt_due, CompanyId = company_id
+	WHERE LoanId = loan_id;
+    
+    COMMIT;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updMisc` (IN `name` VARCHAR(255), IN `amount` DECIMAL(11,2), IN `company_id` INT(11), IN `id` INT(11), IN `date_added` DATE)   BEGIN
+    DECLARE user_id INT;
+    DECLARE old_amount DECIMAL(11, 2);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+    SET old_amount = (SELECT m.Amount FROM miscellaneous m WHERE m.MiscellaneousId = id);
+    SET user_id = (SELECT c.UserId FROM companies c WHERE c.CompanyId = company_id);	
+    
+    IF old_amount > amount THEN
+    	UPDATE userprofile
+    	SET Budget = Budget + (old_amount - amount)
+    	WHERE UserId = user_id;
+    ELSEIF amount > old_amount THEN
+    	UPDATE userprofile
+    	SET Budget = Budget - amount_due
+    	WHERE UserId = user_id;
+    END IF;
+    
+    UPDATE miscellaneous
+	SET Name = name, Amount = amount, CompanyId = company_id, DateAdded = date_added
+	WHERE MiscellaneousId = id;
+    
+    COMMIT;
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updNewDates` ()   BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -379,14 +574,62 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updReply` (IN `reply_body` VARCHAR(
 SET ReplyBody = reply_body, IsEdited = TRUE
 WHERE ReplyId = reply_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `due_date` DATE, IN `is_active` BOOLEAN, IN `company_id` INT, IN `id` INT)   BEGIN
-    UPDATE subscriptions
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updSub` (IN `name` VARCHAR(255), IN `amount_due` DECIMAL(11,2), IN `date_due` DATE, IN `is_active` BOOLEAN, IN `company_id` INT, IN `id` INT)   BEGIN
+	DECLARE old_amount_due DECIMAL(11, 2);
+    DECLARE salary DECIMAL(11, 2);
+    DECLARE budget DECIMAL(11, 2);
+    DECLARE old_is_active BOOLEAN;
+    DECLARE old_date_due DATE;
+    DECLARE user_id INT;
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+    	ROLLBACK;
+    END;
+
+	START TRANSACTION;
+    SELECT s.AmountDue, s.IsActive
+    INTO old_amount_due, old_is_active
+    FROM subscriptions s
+    WHERE s.SubscriptionId = id;
+    
+    SET old_date_due = (SELECT h.DateDue FROM paymenthistory h WHERE h.ExpenseId = id AND h.TypeId = 3 AND MONTH(h.DateDue) = MONTH(NOW()) AND YEAR(h.DateDue) = YEAR(NOW()));
+    
+    IF (!old_is_active AND is_active) OR old_date_due IS NULL THEN
+    	INSERT INTO paymenthistory (ExpenseId, TypeId, DateDue)
+    	VALUES (id, 3, date_due);
+    END IF;
+    
+    IF old_date_due IS NOT NULL AND old_date_due != date_due THEN
+    	UPDATE paymenthistory h
+        SET h.DateDue = date_due
+        WHERE h.ExpenseId = id AND h.TypeId = 3 AND MONTH(h.DateDue) = MONTH(NOW()) AND YEAR(h.DateDue) = YEAR(NOW());
+    END IF;
+    
+    SET user_id = (SELECT c.UserId FROM companies c WHERE c.CompanyId = company_id);
+    
+    SELECT p.MonthlySalary, p.Budget
+    INTO salary, budget
+    FROM userprofile p
+    WHERE p.UserId = user_id;
+        
+    IF salary > 0 AND budget > 0 THEN
+    	IF old_amount_due > amount_due THEN
+        	UPDATE userprofile
+        	SET Budget = Budget + (old_amount_due - amount_due)
+        	WHERE UserId = user_id;
+        ELSEIF amount_due > old_amount_due THEN
+        	UPDATE userprofile
+        	SET Budget = Budget - (amount_due - old_amount_due)
+        	WHERE UserId = user_id;
+        END IF;
+    END IF;
+    
+	UPDATE subscriptions
     SET Name = name, AmountDue = amount_due, IsActive = is_active, CompanyId = company_id
     WHERE SubscriptionId = id;
-
-    UPDATE paymenthistory
-    SET DateDue = due_date
-    WHERE ExpenseId = id AND TypeId = 3 AND (MONTH(DateDue) = MONTH(NOW()) AND YEAR(DateDue) = YEAR(NOW()));
+    
+    COMMIT;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updSuggestion` (IN `suggestion_id` INT, IN `header` VARCHAR(255), IN `body` TEXT)   BEGIN
@@ -524,8 +767,7 @@ CREATE TABLE `types` (
 INSERT INTO `types` (`TypeId`, `TypeName`) VALUES
 (1, 'Bill'),
 (2, 'Loan'),
-(3, 'Subscriptions'),
-(4, 'Miscellaneous');
+(3, 'Subscriptions');
 
 CREATE TABLE `usererror` (
   `UserId` int(11) NOT NULL,
@@ -800,7 +1042,7 @@ ALTER TABLE `comments`
   MODIFY `CommentId` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `commenttypes`
-  MODIFY `CommentTypeId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `CommentTypeId` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `companies`
   MODIFY `CompanyId` int(11) NOT NULL AUTO_INCREMENT;
